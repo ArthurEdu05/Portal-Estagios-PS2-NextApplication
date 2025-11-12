@@ -1,18 +1,21 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react'; 
 import {
     User,
     Briefcase,
     Building2,
     LogIn,
     UserPlus,
+    TrendingUp,
     MapPin,
     Clock,
-    TrendingUp,
 } from 'lucide-react';
-
+import ModalDetalhesVaga from './ModalDetalhesVaga'; 
 
 export default function TelaHome({ setTela, vagasMock }) {
+
+    const [vagaSelecionada, setVagaSelecionada] = useState(null);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <nav className="bg-white shadow-lg">
@@ -43,6 +46,7 @@ export default function TelaHome({ setTela, vagasMock }) {
             </nav>
 
             <div className="max-w-7xl mx-auto px-6 py-16">
+                
                 <div className="text-center mb-16">
                     <h2 className="text-5xl font-bold text-gray-800 mb-6">
                         Conectamos Talentos a Oportunidades
@@ -103,39 +107,45 @@ export default function TelaHome({ setTela, vagasMock }) {
                         Vagas em Destaque
                     </h3>
                     <div className="grid gap-4">
+                        
                         {vagasMock.map((vaga) => (
                             <div
                                 key={vaga.id}
                                 className="border rounded-lg p-6 hover:shadow-md transition"
                             >
-                                <div className="flex justify-between items-start mb-3">
-                                    <div>
-                                        <h4 className="text-xl font-bold text-gray-800">
-                                            {vaga.titulo}
-                                        </h4>
-                                        <p className="text-gray-600">
-                                            {vaga.empresa}
-                                        </p>
-                                    </div>
-                                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                                        {vaga.area}
-                                    </span>
+                                <div className="mb-3">
+                                    <h4 className="text-xl font-bold text-gray-800">
+                                        {vaga.titulo}
+                                    </h4>
+                                    <p className="text-gray-600">
+                                        {vaga.empresa}
+                                    </p>
                                 </div>
-                                <div className="flex gap-4 text-sm text-gray-600">
-                                    <span className="flex items-center gap-1">
-                                        <MapPin size={16} />
-                                        {vaga.localizacao}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <Clock size={16} />
-                                        {vaga.cargaHoraria}
-                                    </span>
+                                
+                                <p className="text-gray-700 mb-4 line-clamp-2">
+                                    {vaga.descricao}
+                                </p>
+                                
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={() => setVagaSelecionada(vaga)}
+                                        className="bg-blue-100 text-blue-800 font-medium py-2 px-5 rounded-lg hover:bg-blue-200 transition"
+                                    >
+                                        Saiba Mais
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {vagaSelecionada && (
+                <ModalDetalhesVaga 
+                    vaga={vagaSelecionada} 
+                    fecharModal={() => setVagaSelecionada(null)} 
+                />
+            )}
         </div>
     );
 }
