@@ -5,7 +5,6 @@ import {
     LogOut,
     Search,
 } from 'lucide-react';
-import GerarCurriculoPDF from './GerarCurriculoPDF';
 import ModalDetalhesVaga from './ModalDetalhesVaga'; 
 
 export default function TelaVagas({ usuario, setUsuario, setTela, vagasFiltradas, filtro, setFiltro }) {
@@ -32,7 +31,6 @@ export default function TelaVagas({ usuario, setUsuario, setTela, vagasFiltradas
                             Olá, {usuario.nome}
                         </span>
                         
-                        {/* <GerarCurriculoPDF estudante={usuario} /> */}
 
                         <button
                             onClick={handleLogout}
@@ -78,7 +76,7 @@ export default function TelaVagas({ usuario, setUsuario, setTela, vagasFiltradas
                                     {vaga.titulo}
                                 </h3>
                                 <p className="text-lg text-gray-600">
-                                    {vaga.empresa}
+                                    {vaga.empresa.nome}
                                 </p>
                             </div>
                             

@@ -7,8 +7,6 @@ import {
     LogIn,
     UserPlus,
     TrendingUp,
-    MapPin,
-    Clock,
 } from 'lucide-react';
 import ModalDetalhesVaga from './ModalDetalhesVaga'; 
 
@@ -48,7 +46,7 @@ export default function TelaHome({ setTela, vagasMock }) {
             <div className="max-w-7xl mx-auto px-6 py-16">
                 
                 <div className="text-center mb-16">
-                    <h2 className="text-5xl font-bold text-gray-800 mb-6">
+                   <h2 className="text-5xl font-bold text-gray-800 mb-6">
                         Conectamos Talentos a Oportunidades
                     </h2>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -108,34 +106,40 @@ export default function TelaHome({ setTela, vagasMock }) {
                     </h3>
                     <div className="grid gap-4">
                         
-                        {vagasMock.map((vaga) => (
-                            <div
-                                key={vaga.id}
-                                className="border rounded-lg p-6 hover:shadow-md transition"
-                            >
-                                <div className="mb-3">
-                                    <h4 className="text-xl font-bold text-gray-800">
-                                        {vaga.titulo}
-                                    </h4>
-                                    <p className="text-gray-600">
-                                        {vaga.empresa}
+                        {vagasMock && vagasMock.length > 0 ? (
+                            vagasMock.map((vaga) => (
+                                <div
+                                    key={vaga.id}
+                                    className="border rounded-lg p-6 hover:shadow-md transition"
+                                >
+                                    <div className="mb-3">
+                                        <h4 className="text-xl font-bold text-gray-800">
+                                            {vaga.titulo}
+                                        </h4>
+                                        <p className="text-gray-600">
+                                            {vaga.empresa.nome}
+                                        </p>
+                                    </div>
+                                    
+                                    <p className="text-gray-700 mb-4 line-clamp-2">
+                                        {vaga.descricao}
                                     </p>
+                                    
+                                    <div className="flex justify-end">
+                                        <button
+                                            onClick={() => setVagaSelecionada(vaga)}
+                                            className="bg-blue-100 text-blue-800 font-medium py-2 px-5 rounded-lg hover:bg-blue-200 transition"
+                                        >
+                                            Saiba Mais
+                                        </button>
+                                    </div>
                                 </div>
-                                
-                                <p className="text-gray-700 mb-4 line-clamp-2">
-                                    {vaga.descricao}
-                                </p>
-                                
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={() => setVagaSelecionada(vaga)}
-                                        className="bg-blue-100 text-blue-800 font-medium py-2 px-5 rounded-lg hover:bg-blue-200 transition"
-                                    >
-                                        Saiba Mais
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-gray-500 text-center">
+                                Nenhuma vaga encontrada no momento.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
