@@ -45,6 +45,17 @@ export default function TelaEscolherCadastro({ setTela }) {
                 >
                     Voltar
                 </button>
+                
+                <div className="text-center pt-4 text-sm text-gray-600">
+                    <span>Já possuo conta! </span>
+                    <button 
+                        onClick={() => setTela('login')}
+                        className="font-medium text-blue-600 hover:underline"
+                    >
+                        Login
+                    </button>
+                </div>
+
             </div>
         </div>
     );

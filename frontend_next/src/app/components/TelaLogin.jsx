@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Briefcase } from 'lucide-react';
 
-
 export default function TelaLogin({ setTela, fazerLogin }) {
     const [email, setEmail] = useState('');
     const [cnpj, setCnpj] = useState('');
@@ -46,7 +45,6 @@ export default function TelaLogin({ setTela, fazerLogin }) {
                         </select>
                     </div>
 
-                    {/* Mostra campos diferentes dependendo do 'tipo' */}
                     {(tipo === 'estudante' || tipo === 'admin') && (
                         <>
                             <div>
@@ -118,6 +116,17 @@ export default function TelaLogin({ setTela, fazerLogin }) {
                     >
                         Voltar
                     </button>
+                    
+                    <div className="text-center pt-2 text-sm text-gray-600">
+                        <span>Não possuo conta! </span>
+                        <button 
+                            onClick={() => setTela('escolher-cadastro')}
+                            className="font-medium text-blue-600 hover:underline"
+                        >
+                            Cadastrar
+                        </button>
+                    </div>
+                    
                 </div>
             </div>
         </div>
