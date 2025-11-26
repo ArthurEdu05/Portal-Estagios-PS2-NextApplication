@@ -18,7 +18,12 @@ const api = {
 		});
 		if (!response.ok) {
 			const errorData = await response.json();
-			console.error('Login failed with status:', response.status, 'and message:', errorData);
+			console.error(
+				'Login failed with status:',
+				response.status,
+				'and message:',
+				errorData
+			);
 			throw new Error(errorData.mensagem || 'Falha no login');
 		}
 		return response.json();
@@ -74,6 +79,32 @@ const api = {
 		if (!response.ok) throw new Error('Falha ao buscar áreas');
 		return response.json();
 	},
+
+	listarInscricoes: async (token) => {
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		};
+		const response = await fetch(`${API_BASE_URL}/inscricao`, { headers });
+		if (!response.ok) throw new Error('Falha ao buscar inscrições');
+		return response.json();
+	},
+
+	cancelarInscricao: async (inscricaoId, token) => {
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		};
+		const response = await fetch(
+			`${API_BASE_URL}/inscricao/${inscricaoId}`,
+			{
+				method: 'DELETE',
+				headers,
+			}
+		);
+		if (!response.ok) throw new Error('Falha ao cancelar inscrição');
+		return response.json();
+	},
 };
 
 export default function PortalEstagios() {
@@ -81,6 +112,7 @@ export default function PortalEstagios() {
 	const [token, setToken] = useState(null);
 	const [tela, setTela] = useState('home');
 	const [vagas, setVagas] = useState([]);
+	const [inscricoes, setInscricoes] = useState([]);
 	const [filtro, setFiltro] = useState('');
 
 	useEffect(() => {
@@ -91,41 +123,26 @@ export default function PortalEstagios() {
 			.catch((error) => {
 				console.error('ERRO AO BUSCAR VAGAS DO BACKEND:', error);
 			});
-	}, [token]);
 
-	// const fazerLogin = async (tipo, credenciais) => {
-	// 	try {
-	// 		// Backend espera "login" e "senha", não "email"
-	// 		const data = await api.login(
-	// 			credenciais.email,
-	// 			credenciais.senha,
-	// 			tipo
-	// 		);
-
-	// 		console.log('Login bem-sucedido:', data);
-
-	// 		// Salvar usuário e token
-	// 		setUsuario({
-	// 			id: data.id,
-	// 			login: data.login,
-	// 			tipo: data.tipo,
-	// 		});
-	// 		setToken(data.token);
-
-	// 		// Redirecionar baseado no tipo
-	// 		if (data.tipo === 'ESTUDANTE') {
-	// 			setTela('vagas');
-	// 		} else if (data.tipo === 'EMPRESA') {
-	// 			setTela('minhas-vagas');
-	// 		} else if (data.tipo === 'ADMIN') {
-	// 			setTela('dashboard');
-	// 		}
-	// 	} catch (error) {
-	// 		console.error('Erro no login:', error);
-	// 		alert('Login falhou: ' + error.message);
-	// 		throw error;
-	// 	}
-	// };
+		if (usuario && usuario.tipo === 'ESTUDANTE') {
+			api.listarInscricoes(token)
+				.then((data) => {
+					// Filtra para manter apenas as inscrições do usuário logado
+					const minhasInscricoes = data.filter(
+						(i) => i.estudante.id === usuario.id
+					);
+					setInscricoes(minhasInscricoes);
+				})
+				.catch((error) => {
+					console.error(
+						'ERRO AO BUSCAR INSCRIÇÕES DO BACKEND:',
+						error
+					);
+				});
+		} else {
+			setInscricoes([]);
+		}
+	}, [usuario, token]);
 
 	const fazerLogin = async (tipo, credenciais) => {
 		try {
@@ -150,8 +167,7 @@ export default function PortalEstagios() {
 			else if (data.tipo === 'ADMIN') setTela('dashboard');
 		} catch (error) {
 			console.error('Erro no login:', error.message);
-			// O erro já vem do backend, então mostramos a mensagem diretamente.
-			// O componente TelaLogin.jsx mostrará a mensagem de erro.
+
 			throw error;
 		}
 	};
@@ -181,11 +197,26 @@ export default function PortalEstagios() {
 				dataInscricao: new Date().toISOString(),
 				status: 'PENDENTE',
 			};
-			await api.inscreverVaga(dadosInscricao, token);
+			const novaInscricao = await api.inscreverVaga(dadosInscricao, token);
+			setInscricoes([...inscricoes, novaInscricao]); 
 			alert(`Inscrição na vaga "${vaga.titulo}" realizada com sucesso!`);
 		} catch (error) {
 			console.error('Erro ao se inscrever na vaga:', error);
 			alert('Erro ao se inscrever na vaga: ' + error.message);
+		}
+	};
+
+	const handleCancelarInscricao = async (inscricaoId) => {
+		try {
+			await api.cancelarInscricao(inscricaoId, token);
+			
+			setInscricoes(
+				inscricoes.filter((inscricao) => inscricao.id !== inscricaoId)
+			);
+			alert('Sua inscrição foi cancelada com sucesso.');
+		} catch (error) {
+			console.error('Erro ao cancelar inscrição:', error);
+			alert('Erro ao cancelar inscrição: ' + error.message);
 		}
 	};
 
@@ -228,6 +259,8 @@ export default function PortalEstagios() {
 				usuario={usuario}
 				onInscrever={handleInscricao}
 				fazerLogout={fazerLogout}
+				inscricoes={inscricoes}
+				onCancelarInscricao={handleCancelarInscricao}
 			/>
 		);
 	}
@@ -284,3 +317,4 @@ export default function PortalEstagios() {
 		</div>
 	);
 }
+
