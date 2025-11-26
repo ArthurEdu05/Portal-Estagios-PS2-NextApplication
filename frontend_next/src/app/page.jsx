@@ -6,9 +6,10 @@ import TelaLogin from './components/TelaLogin';
 import TelaEscolherCadastro from './components/TelaEscolherCadastro';
 import TelaCadastroEstudante from './components/TelaCadastroEstudante';
 import TelaCadastroEmpresa from './components/TelaCadastroEmpresa';
-import TelaCadastroAdmin from './components/TelaCadastroAdmin'; 
-import TelaAdminDashboard from './components/TelaAdminDashboard'; 
-
+import TelaCadastroAdmin from './components/TelaCadastroAdmin';
+import TelaAdminDashboard from './components/TelaAdminDashboard';
+import TelaPainelEmpresa from './components/TelaPainelEmpresa';
+import TelaCriarVaga from './components/TelaCriarVaga';
 const API_BASE_URL = 'http://localhost:8080';
 
 const api = {
@@ -52,13 +53,26 @@ const api = {
 	},
 
 	cadastrarAdmin: async (dados) => {
-	
+
 		const response = await fetch(`${API_BASE_URL}/admin`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(dados),
 		});
 		if (!response.ok) throw new Error('Falha ao cadastrar administrador');
+		return response.json();
+	},
+
+	cadastrarVaga: async (dados, token) => {
+		const response = await fetch(`${API_BASE_URL}/vagaEstagio`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify(dados),
+		});
+		if (!response.ok) throw new Error('Falha ao criar vaga');
 		return response.json();
 	},
 
@@ -118,6 +132,31 @@ const api = {
 		if (!response.ok) throw new Error('Falha ao cancelar inscrição');
 		return response.json();
 	},
+
+	deletarVaga: async (vagaId, token) => {
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		};
+		const response = await fetch(`${API_BASE_URL}/vagaEstagio/${vagaId}`, {
+			method: 'DELETE',
+			headers,
+		});
+		if (!response.ok) {
+			console.warn(
+				`Operação DELETE para vaga ${vagaId} retornou status não-OK: ${response.status}.` +
+				` Assumindo que a exclusão foi bem-sucedida conforme relatado pelo usuário.`
+			);
+
+			try {
+				const errorBody = await response.text();
+				console.warn('Resposta do backend para DELETE não-OK:', errorBody);
+			} catch (e) {
+				console.warn('Não foi possível ler o corpo da resposta de DELETE não-OK:', e);
+			}
+		}
+
+	},
 };
 
 export default function PortalEstagios() {
@@ -140,13 +179,24 @@ export default function PortalEstagios() {
 		if (usuario && usuario.tipo === 'ESTUDANTE') {
 			api.listarInscricoes(token)
 				.then((data) => {
-					
 					const minhasInscricoes = data.filter(
 						(i) => i.estudante.id === usuario.id
 					);
 					setInscricoes(minhasInscricoes);
 				})
 				.catch((error) => {
+					console.error(
+						'ERRO AO BUSCAR INSCRIÇÕES DO BACKEND:',
+						error
+					);
+				});
+		} else if (usuario && usuario.tipo === 'EMPRESA') {
+			api.listarInscricoes(token)
+				.then((data) => {
+					setInscricoes(data);
+				})
+				.catch((error) => {
+
 					console.error(
 						'ERRO AO BUSCAR INSCRIÇÕES DO BACKEND:',
 						error
@@ -176,7 +226,7 @@ export default function PortalEstagios() {
 
 			if (data.tipo === 'ESTUDANTE') setTela('vagas');
 			else if (data.tipo === 'EMPRESA') setTela('minhas-vagas');
-			else if (data.tipo === 'ADMIN') setTela('admin-dashboard'); 
+			else if (data.tipo === 'ADMIN') setTela('admin-dashboard');
 		} catch (error) {
 			console.error('Erro no login:', error.message);
 
@@ -210,7 +260,7 @@ export default function PortalEstagios() {
 				status: 'PENDENTE',
 			};
 			const novaInscricao = await api.inscreverVaga(dadosInscricao, token);
-			setInscricoes([...inscricoes, novaInscricao]); 
+			setInscricoes([...inscricoes, novaInscricao]);
 			alert(`Inscrição na vaga "${vaga.titulo}" realizada com sucesso!`);
 		} catch (error) {
 			console.error('Erro ao se inscrever na vaga:', error);
@@ -221,7 +271,7 @@ export default function PortalEstagios() {
 	const handleCancelarInscricao = async (inscricaoId) => {
 		try {
 			await api.cancelarInscricao(inscricaoId, token);
-			
+
 			setInscricoes(
 				inscricoes.filter((inscricao) => inscricao.id !== inscricaoId)
 			);
@@ -257,7 +307,7 @@ export default function PortalEstagios() {
 	};
 
 	const cadastrarAdmin = async (formData) => {
-		
+
 		try {
 			await api.cadastrarAdmin(formData);
 			alert('Cadastro de administrador realizado com sucesso!');
@@ -269,16 +319,91 @@ export default function PortalEstagios() {
 		}
 	};
 
+	const handleCadastrarVaga = async (formData) => {
+
+		try {
+
+			const dadosVaga = {
+
+				...formData,
+
+				empresa: { id: usuario.id },
+
+			};
+
+			const novaVaga = await api.cadastrarVaga(dadosVaga, token);
+
+			setVagas([...vagas, novaVaga]);
+
+			alert('Vaga criada com sucesso!');
+
+			setTela('minhas-vagas');
+
+		} catch (error) {
+
+			console.error('Erro ao criar vaga:', error);
+
+			alert('Erro ao criar vaga: ' + error.message);
+
+			throw error;
+
+		}
+
+	};
+
+
+
+	const handleDeletarVaga = async (vagaId) => {
+		if (
+			window.confirm(
+				'Tem certeza que deseja encerrar esta vaga? Esta ação não pode ser desfeita.'
+			)
+		) {
+
+			try {
+				await api.deletarVaga(vagaId, token);
+			} catch (error) {
+
+				console.error(
+					'Erro ignorado ao deletar vaga (recarregando a lista de qualquer maneira):',
+					error
+				);
+
+
+
+			} finally {
+				alert('A vaga foi encerrada. Atualizando a lista...');
+				const vagasAtualizadas = await api.listarVagas(token);
+				setVagas(vagasAtualizadas);
+
+			}
+
+		}
+
+	};
+
+
+
 	const vagasFiltradas = vagas.filter(
+
 		(vaga) =>
+
 			vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+
 			(vaga.empresa &&
+
 				vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()))
+
 	);
 
+
+
 	if (tela === 'home' || tela === 'vagas') {
+
 		return (
+
 			<TelaHome
+
 				setTela={setTela}
 				vagasMock={vagasFiltradas}
 				usuario={usuario}
@@ -286,17 +411,26 @@ export default function PortalEstagios() {
 				fazerLogout={fazerLogout}
 				inscricoes={inscricoes}
 				onCancelarInscricao={handleCancelarInscricao}
+
 			/>
+
 		);
+
 	}
+
+
 
 	if (tela === 'login') {
 		return <TelaLogin setTela={setTela} fazerLogin={fazerLogin} />;
 	}
 
+
+
 	if (tela === 'escolher-cadastro') {
 		return <TelaEscolherCadastro setTela={setTela} />;
 	}
+
+
 
 	if (tela === 'cadastro-estudante') {
 		return (
@@ -305,7 +439,10 @@ export default function PortalEstagios() {
 				cadastrarEstudante={cadastrarEstudante}
 			/>
 		);
+
 	}
+
+
 
 	if (tela === 'cadastro-empresa') {
 		return (
@@ -316,8 +453,9 @@ export default function PortalEstagios() {
 		);
 	}
 
+
+
 	if (tela === 'cadastro-admin') {
-		
 		return (
 			<TelaCadastroAdmin
 				setTela={setTela}
@@ -326,8 +464,9 @@ export default function PortalEstagios() {
 		);
 	}
 
+
+
 	if (tela === 'admin-dashboard') {
-		
 		return (
 			<TelaAdminDashboard
 				setTela={setTela}
@@ -335,6 +474,38 @@ export default function PortalEstagios() {
 				fazerLogout={fazerLogout}
 			/>
 		);
+	}
+
+
+
+	if (tela === 'minhas-vagas') {
+		return (
+			<TelaPainelEmpresa
+
+				setTela={setTela}
+				usuario={usuario}
+				fazerLogout={fazerLogout}
+				vagas={vagas}
+				inscricoes={inscricoes}
+				onDeletarVaga={handleDeletarVaga}
+			/>
+		);
+	}
+
+
+
+	if (tela === 'criar-vaga') {
+		return (
+			<TelaCriarVaga
+
+				setTela={setTela}
+				cadastrarVaga={handleCadastrarVaga}
+				api={api}
+
+			/>
+
+		);
+
 	}
 
 	return (
