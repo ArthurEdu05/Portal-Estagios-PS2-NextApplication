@@ -10,7 +10,7 @@ import TelaCadastroEmpresa from './components/TelaCadastroEmpresa';
 const API_BASE_URL = 'http://localhost:8080';
 
 const api = {
-	login: async (login, senha, tipo) => {
+	login: async (login, senha) => {
 		const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
@@ -127,7 +127,7 @@ export default function PortalEstagios() {
 		if (usuario && usuario.tipo === 'ESTUDANTE') {
 			api.listarInscricoes(token)
 				.then((data) => {
-					// Filtra para manter apenas as inscrições do usuário logado
+					
 					const minhasInscricoes = data.filter(
 						(i) => i.estudante.id === usuario.id
 					);
@@ -144,12 +144,11 @@ export default function PortalEstagios() {
 		}
 	}, [usuario, token]);
 
-	const fazerLogin = async (tipo, credenciais) => {
+	const fazerLogin = async (credenciais) => {
 		try {
 			const data = await api.login(
 				credenciais.email,
-				credenciais.senha,
-				tipo
+				credenciais.senha
 			);
 
 			console.log('Login bem-sucedido:', data);

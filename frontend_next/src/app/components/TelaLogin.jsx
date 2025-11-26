@@ -5,7 +5,6 @@ import { Briefcase } from 'lucide-react';
 export default function TelaLogin({ setTela, fazerLogin }) {
 	const [email, setEmail] = useState('');
 	const [senha, setSenha] = useState('');
-	const [tipo, setTipo] = useState('estudante');
 	const [carregando, setCarregando] = useState(false);
 	const [erro, setErro] = useState('');
 
@@ -19,7 +18,8 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 		setErro('');
 
 		try {
-			await fazerLogin(tipo, {
+			
+			await fazerLogin({
 				email,
 				senha,
 			});
@@ -42,22 +42,6 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 				</div>
 
 				<div className="space-y-4">
-					{/* Selecionar tipo */}
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Tipo de Usuário
-						</label>
-						<select
-							value={tipo}
-							onChange={(e) => setTipo(e.target.value)}
-							className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-						>
-							<option value="estudante">Estudante</option>
-							<option value="empresa">Empresa</option>
-							<option value="admin">Administrador</option>
-						</select>
-					</div>
-
 					{/* Email */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-2">
