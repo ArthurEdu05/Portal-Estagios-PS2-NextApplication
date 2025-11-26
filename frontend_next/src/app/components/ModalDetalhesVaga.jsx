@@ -6,7 +6,7 @@ import {
     XCircle,
 } from 'lucide-react';
 
-export default function ModalDetalhesVaga({ vaga, fecharModal }) {
+export default function ModalDetalhesVaga({ vaga, fecharModal, onInscrever }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
             
@@ -52,7 +52,7 @@ export default function ModalDetalhesVaga({ vaga, fecharModal }) {
 
                 <div className="flex gap-4">
                     <button
-                        onClick={() => alert(`Inscrito na vaga: ${vaga.titulo}`)}
+                        onClick={() => onInscrever(vaga)}
                         className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium"
                     >
                         Inscrever-se

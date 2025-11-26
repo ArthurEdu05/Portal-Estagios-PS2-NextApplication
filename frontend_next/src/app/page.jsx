@@ -150,8 +150,42 @@ export default function PortalEstagios() {
 			else if (data.tipo === 'ADMIN') setTela('dashboard');
 		} catch (error) {
 			console.error('Erro no login:', error.message);
-			
+			// O erro já vem do backend, então mostramos a mensagem diretamente.
+			// O componente TelaLogin.jsx mostrará a mensagem de erro.
 			throw error;
+		}
+	};
+
+	const fazerLogout = () => {
+		setUsuario(null);
+		setToken(null);
+		setTela('home');
+	};
+
+	const handleInscricao = async (vaga) => {
+		if (!usuario) {
+			alert('Você tem que estar logado para se inscrever em uma vaga.');
+			setTela('login');
+			return;
+		}
+
+		if (usuario.tipo !== 'ESTUDANTE') {
+			alert('Apenas estudantes podem se inscrever em vagas.');
+			return;
+		}
+
+		try {
+			const dadosInscricao = {
+				vagaEstagio: { id: vaga.id },
+				estudante: { id: usuario.id },
+				dataInscricao: new Date().toISOString(),
+				status: 'PENDENTE',
+			};
+			await api.inscreverVaga(dadosInscricao, token);
+			alert(`Inscrição na vaga "${vaga.titulo}" realizada com sucesso!`);
+		} catch (error) {
+			console.error('Erro ao se inscrever na vaga:', error);
+			alert('Erro ao se inscrever na vaga: ' + error.message);
 		}
 	};
 
@@ -183,11 +217,19 @@ export default function PortalEstagios() {
 		(vaga) =>
 			vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
 			(vaga.empresa &&
-				vaga.empresa.toLowerCase().includes(filtro.toLowerCase()))
+				vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()))
 	);
 
-	if (tela === 'home') {
-		return <TelaHome setTela={setTela} vagasMock={vagasFiltradas} />;
+	if (tela === 'home' || tela === 'vagas') {
+		return (
+			<TelaHome
+				setTela={setTela}
+				vagasMock={vagasFiltradas}
+				usuario={usuario}
+				onInscrever={handleInscricao}
+				fazerLogout={fazerLogout}
+			/>
+		);
 	}
 
 	if (tela === 'login') {
@@ -220,7 +262,7 @@ export default function PortalEstagios() {
 		<div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
 			<div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
 				<h2 className="text-2xl font-bold mb-4">
-					Bem-vindo, {usuario?.login}!
+					Bem-vindo, {usuario?.nome}!
 				</h2>
 				<p className="text-gray-600 mb-6">
 					Tela "{tela}" em construção...
