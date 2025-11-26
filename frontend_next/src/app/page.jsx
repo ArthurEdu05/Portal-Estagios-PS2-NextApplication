@@ -14,11 +14,12 @@ const api = {
 		const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ login, senha }),
+			body: JSON.stringify({ email: login, senha }),
 		});
 		if (!response.ok) {
-			const error = await response.text();
-			throw new Error(error || 'Falha no login');
+			const errorData = await response.json();
+			console.error('Login failed with status:', response.status, 'and message:', errorData);
+			throw new Error(errorData.mensagem || 'Falha no login');
 		}
 		return response.json();
 	},
@@ -129,7 +130,7 @@ export default function PortalEstagios() {
 	const fazerLogin = async (tipo, credenciais) => {
 		try {
 			const data = await api.login(
-				credenciais.login,
+				credenciais.email,
 				credenciais.senha,
 				tipo
 			);
@@ -139,6 +140,7 @@ export default function PortalEstagios() {
 			setUsuario({
 				id: data.id,
 				login: data.login,
+				nome: data.nome,
 				tipo: data.tipo,
 			});
 			setToken(data.token);
@@ -147,8 +149,8 @@ export default function PortalEstagios() {
 			else if (data.tipo === 'EMPRESA') setTela('minhas-vagas');
 			else if (data.tipo === 'ADMIN') setTela('dashboard');
 		} catch (error) {
-			console.error('Erro no login:', error);
-			alert('Login falhou: ' + error.message);
+			console.error('Erro no login:', error.message);
+			
 			throw error;
 		}
 	};
