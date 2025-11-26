@@ -6,6 +6,8 @@ import TelaLogin from './components/TelaLogin';
 import TelaEscolherCadastro from './components/TelaEscolherCadastro';
 import TelaCadastroEstudante from './components/TelaCadastroEstudante';
 import TelaCadastroEmpresa from './components/TelaCadastroEmpresa';
+import TelaCadastroAdmin from './components/TelaCadastroAdmin'; 
+import TelaAdminDashboard from './components/TelaAdminDashboard'; 
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -46,6 +48,17 @@ const api = {
 			body: JSON.stringify(dados),
 		});
 		if (!response.ok) throw new Error('Falha ao cadastrar empresa');
+		return response.json();
+	},
+
+	cadastrarAdmin: async (dados) => {
+	
+		const response = await fetch(`${API_BASE_URL}/admin`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(dados),
+		});
+		if (!response.ok) throw new Error('Falha ao cadastrar administrador');
 		return response.json();
 	},
 
@@ -163,7 +176,7 @@ export default function PortalEstagios() {
 
 			if (data.tipo === 'ESTUDANTE') setTela('vagas');
 			else if (data.tipo === 'EMPRESA') setTela('minhas-vagas');
-			else if (data.tipo === 'ADMIN') setTela('dashboard');
+			else if (data.tipo === 'ADMIN') setTela('admin-dashboard'); 
 		} catch (error) {
 			console.error('Erro no login:', error.message);
 
@@ -243,6 +256,19 @@ export default function PortalEstagios() {
 		}
 	};
 
+	const cadastrarAdmin = async (formData) => {
+		
+		try {
+			await api.cadastrarAdmin(formData);
+			alert('Cadastro de administrador realizado com sucesso!');
+			setTela('login');
+		} catch (error) {
+			console.error('Erro no cadastro de admin:', error);
+			alert('Erro ao cadastrar administrador: ' + error.message);
+			throw error;
+		}
+	};
+
 	const vagasFiltradas = vagas.filter(
 		(vaga) =>
 			vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
@@ -286,6 +312,27 @@ export default function PortalEstagios() {
 			<TelaCadastroEmpresa
 				setTela={setTela}
 				cadastrarEmpresa={cadastrarEmpresa}
+			/>
+		);
+	}
+
+	if (tela === 'cadastro-admin') {
+		
+		return (
+			<TelaCadastroAdmin
+				setTela={setTela}
+				cadastrarAdmin={cadastrarAdmin}
+			/>
+		);
+	}
+
+	if (tela === 'admin-dashboard') {
+		
+		return (
+			<TelaAdminDashboard
+				setTela={setTela}
+				usuario={usuario}
+				fazerLogout={fazerLogout}
 			/>
 		);
 	}

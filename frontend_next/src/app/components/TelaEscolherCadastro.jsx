@@ -1,6 +1,5 @@
 'use client';
-import React from 'react';
-import { User, Building2 } from 'lucide-react';
+import { User, Building2, UserCog } from 'lucide-react'; 
 
 export default function TelaEscolherCadastro({ setTela }) {
 	return (
@@ -9,7 +8,7 @@ export default function TelaEscolherCadastro({ setTela }) {
 				<h2 className="text-3xl font-bold text-center mb-8">
 					Escolha o Tipo de Cadastro
 				</h2>
-				<div className="grid md:grid-cols-2 gap-6">
+				<div className="grid md:grid-cols-3 gap-6"> 
 					<button
 						onClick={() => setTela('cadastro-estudante')}
 						className="p-8 border-2 border-blue-200 rounded-xl hover:border-blue-600 hover:shadow-lg transition"
@@ -34,6 +33,21 @@ export default function TelaEscolherCadastro({ setTela }) {
 						<h3 className="text-xl font-bold mb-2">Empresa</h3>
 						<p className="text-gray-600">
 							Cadastre-se para divulgar vagas
+						</p>
+					</button>
+					<button
+						onClick={() => setTela('cadastro-admin')} 
+						className="p-8 border-2 border-purple-200 rounded-xl hover:border-purple-600 hover:shadow-lg transition"
+					>
+						<UserCog
+							className="text-purple-600 mx-auto mb-4"
+							size={48}
+						/> {/* Ícone para admin */}
+						<h3 className="text-xl font-bold mb-2">
+							Administrador
+						</h3>
+						<p className="text-gray-600">
+							Cadastre-se para gerenciar o portal
 						</p>
 					</button>
 				</div>
