@@ -10,6 +10,7 @@ import TelaCadastroAdmin from './components/TelaCadastroAdmin';
 import TelaAdminDashboard from './components/TelaAdminDashboard';
 import TelaPainelEmpresa from './components/TelaPainelEmpresa';
 import TelaCriarVaga from './components/TelaCriarVaga';
+import TelaAreasInteresseAdmin from './components/TelaAreasInteresseAdmin';
 const API_BASE_URL = 'http://localhost:8080';
 
 const api = {
@@ -107,6 +108,43 @@ const api = {
 		return response.json();
 	},
 
+	cadastrarAreaInteresse: async (dados, token) => {
+		const response = await fetch(`${API_BASE_URL}/areaInteresse`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify(dados),
+		});
+		if (!response.ok) throw new Error('Falha ao cadastrar área de interesse');
+		return response.json();
+	},
+
+	atualizarAreaInteresse: async (id, dados, token) => {
+		const response = await fetch(`${API_BASE_URL}/areaInteresse/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify(dados),
+		});
+		if (!response.ok) throw new Error('Falha ao atualizar área de interesse');
+		return response.json();
+	},
+
+	deletarAreaInteresse: async (id, token) => {
+		const response = await fetch(`${API_BASE_URL}/areaInteresse/${id}`, {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		if (!response.ok) throw new Error('Falha ao deletar área de interesse');
+		return response.json();
+	},
+
 	listarInscricoes: async (token) => {
 		const headers = {
 			'Content-Type': 'application/json',
@@ -165,6 +203,7 @@ export default function PortalEstagios() {
 	const [tela, setTela] = useState('home');
 	const [vagas, setVagas] = useState([]);
 	const [inscricoes, setInscricoes] = useState([]);
+	const [areasInteresse, setAreasInteresse] = useState([]);
 	const [filtro, setFiltro] = useState('');
 
 	useEffect(() => {
@@ -175,6 +214,12 @@ export default function PortalEstagios() {
 			.catch((error) => {
 				console.error('ERRO AO BUSCAR VAGAS DO BACKEND:', error);
 			});
+
+		if (usuario?.tipo === 'ADMIN') {
+			api.listarAreas()
+				.then(data => setAreasInteresse(data))
+				.catch(error => console.error('ERRO AO BUSCAR ÁREAS DE INTERESSE:', error));
+		}
 
 		if (usuario && usuario.tipo === 'ESTUDANTE') {
 			api.listarInscricoes(token)
@@ -382,6 +427,40 @@ export default function PortalEstagios() {
 
 	};
 
+	const handleCadastrarArea = async (dados) => {
+		try {
+			const novaArea = await api.cadastrarAreaInteresse(dados, token);
+			setAreasInteresse([...areasInteresse, novaArea]);
+			alert('Área de interesse cadastrada com sucesso!');
+		} catch (error) {
+			console.error('Erro ao cadastrar área:', error);
+			alert('Erro ao cadastrar área: ' + error.message);
+		}
+	};
+
+	const handleAtualizarArea = async (id, dados) => {
+		try {
+			const areaAtualizada = await api.atualizarAreaInteresse(id, dados, token);
+			setAreasInteresse(areasInteresse.map(a => a.id === id ? areaAtualizada : a));
+			alert('Área de interesse atualizada com sucesso!');
+		} catch (error) {
+			console.error('Erro ao atualizar área:', error);
+			alert('Erro ao atualizar área: ' + error.message);
+		}
+	};
+
+	const handleDeletarArea = async (id) => {
+		if (window.confirm('Tem certeza que deseja excluir esta área de interesse?')) {
+			try {
+				await api.deletarAreaInteresse(id, token);
+				setAreasInteresse(areasInteresse.filter(a => a.id !== id));
+				alert('Área de interesse excluída com sucesso.');
+			} catch (error) {
+				console.error('Erro ao excluir área:', error);
+				alert('Erro ao excluir área: ' + error.message);
+			}
+		}
+	};
 
 
 	const vagasFiltradas = vagas.filter(
@@ -476,6 +555,17 @@ export default function PortalEstagios() {
 		);
 	}
 
+	if (tela === 'admin-areas-interesse') {
+		return (
+			<TelaAreasInteresseAdmin
+				setTela={setTela}
+				areas={areasInteresse}
+				onCadastrar={handleCadastrarArea}
+				onAtualizar={handleAtualizarArea}
+				onDeletar={handleDeletarArea}
+			/>
+		);
+	}
 
 
 	if (tela === 'minhas-vagas') {
