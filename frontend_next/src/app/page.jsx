@@ -46,6 +46,23 @@ const api = {
 		return response.json();
 	},
 
+	atualizarEstudante: async (id, dadosEstudante, token) => {
+		const response = await fetch(`${API_BASE_URL}/estudante/${id}`, {
+			method: 'PUT',
+			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+			body: JSON.stringify(dadosEstudante),
+		});
+		if (!response.ok) throw new Error('Falha ao atualizar perfil do estudante');
+		return response.json();
+	},
+
+	getEstudanteById: async (id, token) => {
+		const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+		const response = await fetch(`${API_BASE_URL}/estudante/${id}`, { headers });
+		if (!response.ok) throw new Error('Falha ao buscar estudante por ID');
+		return response.json();
+	},
+
 	cadastrarEmpresa: async (dados) => {
 		const response = await fetch(`${API_BASE_URL}/empresa`, {
 			method: 'POST',
@@ -247,11 +264,12 @@ export default function PortalEstagios() {
 			.catch((error) => {
 				console.error('ERRO AO BUSCAR VAGAS DO BACKEND:', error);
 			});
+		
+		api.listarAreas()
+			.then(data => setAreasInteresse(data))
+			.catch(error => console.error('ERRO AO BUSCAR ÁREAS DE INTERESSE:', error));
 
 		if (usuario?.tipo === 'ADMIN') {
-			api.listarAreas()
-				.then(data => setAreasInteresse(data))
-				.catch(error => console.error('ERRO AO BUSCAR ÁREAS DE INTERESSE:', error));
 			api.listarEstudantes(token)
 				.then(data => setEstudantes(data))
 				.catch(error => console.error('ERRO AO BUSCAR ESTUDANTES:', error));
@@ -298,15 +316,20 @@ export default function PortalEstagios() {
 				credenciais.senha
 			);
 
-			console.log('Login bem-sucedido:', data);
+			const token = data.token;
+			let fullUserData = { ...data };
 
-			setUsuario({
-				id: data.id,
-				login: data.login,
-				nome: data.nome,
-				tipo: data.tipo,
-			});
-			setToken(data.token);
+			if (data.tipo === 'ESTUDANTE') {
+				try {
+					const estudanteCompleto = await api.getEstudanteById(data.id, token);
+					fullUserData = { ...estudanteCompleto, tipo: 'ESTUDANTE' };
+				} catch (profileError) {
+					console.error('Erro ao buscar perfil completo do estudante:', profileError);
+				}
+			}
+
+			setUsuario(fullUserData);
+			setToken(token);
 
 			if (data.tipo === 'ESTUDANTE') setTela('vagas');
 			else if (data.tipo === 'EMPRESA') setTela('minhas-vagas');
@@ -433,6 +456,25 @@ export default function PortalEstagios() {
 		setTela('formulario-vaga');
 	};
 
+	const handleSalvarPerfilEstudante = async (novasAreas) => {
+		if (!usuario || usuario.tipo !== 'ESTUDANTE') {
+			alert('Você precisa estar logado como estudante para atualizar seu perfil.');
+			return;
+		}
+		try {
+			const dadosAtualizados = {
+				...usuario,
+				listAreaInteresse: novasAreas,
+			};
+			const estudanteAtualizado = await api.atualizarEstudante(usuario.id, dadosAtualizados, token);
+			setUsuario({ ...estudanteAtualizado, tipo: 'ESTUDANTE' }); 
+			alert('Áreas de interesse atualizadas com sucesso!');
+		} catch (error) {
+			console.error('Erro ao atualizar perfil do estudante:', error);
+			alert('Erro ao atualizar perfil: ' + error.message);
+		}
+	};
+
 
 	const handleDeletarVaga = async (vagaId) => {
 		if (
@@ -526,7 +568,8 @@ export default function PortalEstagios() {
 				fazerLogout={fazerLogout}
 				inscricoes={inscricoes}
 				onCancelarInscricao={handleCancelarInscricao}
-
+				areasInteresse={areasInteresse}
+				onSalvarInteresses={handleSalvarPerfilEstudante}
 			/>
 
 		);
@@ -672,4 +715,3 @@ export default function PortalEstagios() {
 		</div>
 	);
 }
-
