@@ -9,7 +9,7 @@ import TelaCadastroEmpresa from './components/TelaCadastroEmpresa';
 import TelaCadastroAdmin from './components/TelaCadastroAdmin';
 import TelaAdminDashboard from './components/TelaAdminDashboard';
 import TelaPainelEmpresa from './components/TelaPainelEmpresa';
-import TelaCriarVaga from './components/TelaCriarVaga';
+import TelaFormularioVaga from './components/TelaFormularioVaga';
 import TelaAreasInteresseAdmin from './components/TelaAreasInteresseAdmin';
 import TelaListaEmpresasAdmin from './components/TelaListaEmpresasAdmin';
 import TelaListaEstudantesAdmin from './components/TelaListaEstudantesAdmin';
@@ -77,6 +77,19 @@ const api = {
 			body: JSON.stringify(dados),
 		});
 		if (!response.ok) throw new Error('Falha ao criar vaga');
+		return response.json();
+	},
+
+	atualizarVaga: async (id, dados, token) => {
+		const response = await fetch(`${API_BASE_URL}/vagaEstagio/${id}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify(dados),
+		});
+		if (!response.ok) throw new Error('Falha ao atualizar vaga');
 		return response.json();
 	},
 
@@ -223,6 +236,7 @@ export default function PortalEstagios() {
 	const [areasInteresse, setAreasInteresse] = useState([]);
 	const [estudantes, setEstudantes] = useState([]);
 	const [empresas, setEmpresas] = useState([]);
+	const [vagaEmEdicao, setVagaEmEdicao] = useState(null);
 	const [filtro, setFiltro] = useState('');
 
 	useEffect(() => {
@@ -307,6 +321,7 @@ export default function PortalEstagios() {
 	const fazerLogout = () => {
 		setUsuario(null);
 		setToken(null);
+		setVagaEmEdicao(null);
 		setTela('home');
 	};
 
@@ -389,38 +404,34 @@ export default function PortalEstagios() {
 		}
 	};
 
-	const handleCadastrarVaga = async (formData) => {
-
+	const handleSalvarVaga = async (formData) => {
 		try {
+			const dadosVaga = { ...formData, empresa: { id: usuario.id } };
 
-			const dadosVaga = {
+			if (vagaEmEdicao) {
+				const vagaAtualizada = await api.atualizarVaga(vagaEmEdicao.id, dadosVaga, token);
+				setVagas(vagas.map(v => v.id === vagaEmEdicao.id ? vagaAtualizada : v));
+				alert('Vaga atualizada com sucesso!');
+			} else {
+				const novaVaga = await api.cadastrarVaga(dadosVaga, token);
+				setVagas([...vagas, novaVaga]);
+				alert('Vaga criada com sucesso!');
+			}
 
-				...formData,
-
-				empresa: { id: usuario.id },
-
-			};
-
-			const novaVaga = await api.cadastrarVaga(dadosVaga, token);
-
-			setVagas([...vagas, novaVaga]);
-
-			alert('Vaga criada com sucesso!');
-
+			setVagaEmEdicao(null);
 			setTela('minhas-vagas');
 
 		} catch (error) {
-
-			console.error('Erro ao criar vaga:', error);
-
-			alert('Erro ao criar vaga: ' + error.message);
-
+			console.error('Erro ao salvar vaga:', error);
+			alert('Erro ao salvar vaga: ' + error.message);
 			throw error;
-
 		}
-
 	};
 
+	const iniciarEdicaoVaga = (vaga) => {
+		setVagaEmEdicao(vaga);
+		setTela('formulario-vaga');
+	};
 
 
 	const handleDeletarVaga = async (vagaId) => {
@@ -599,31 +610,28 @@ export default function PortalEstagios() {
 	if (tela === 'minhas-vagas') {
 		return (
 			<TelaPainelEmpresa
-
 				setTela={setTela}
 				usuario={usuario}
 				fazerLogout={fazerLogout}
 				vagas={vagas}
 				inscricoes={inscricoes}
 				onDeletarVaga={handleDeletarVaga}
+				onEditarVaga={iniciarEdicaoVaga}
 			/>
 		);
 	}
 
 
 
-	if (tela === 'criar-vaga') {
+	if (tela === 'formulario-vaga') {
 		return (
-			<TelaCriarVaga
-
+			<TelaFormularioVaga
 				setTela={setTela}
-				cadastrarVaga={handleCadastrarVaga}
+				onSalvarVaga={handleSalvarVaga}
 				api={api}
-
+				vagaInicial={vagaEmEdicao}
 			/>
-
 		);
-
 	}
 
 	if (tela === 'admin-lista-empresas') {

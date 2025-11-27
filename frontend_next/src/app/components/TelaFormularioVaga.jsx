@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
-export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
+export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaInicial }) {
 	const [formData, setFormData] = useState({
 		titulo: '',
 		descricao: '',
@@ -15,13 +15,26 @@ export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
 	const [erro, setErro] = useState('');
 	const [carregando, setCarregando] = useState(false);
 
+	const isEditing = !!vagaInicial;
+
 	useEffect(() => {
 		api.listarAreas()
 			.then(setAreas)
 			.catch(() =>
 				setErro('Não foi possível carregar as áreas de interesse.')
 			);
-	}, [api]);
+
+		// Se estiver editando, preenche o formulário com os dados da vaga
+		if (isEditing) {
+			setFormData({
+				titulo: vagaInicial.titulo,
+				descricao: vagaInicial.descricao,
+				dataInicio: new Date(vagaInicial.dataInicio).toISOString().split('T')[0],
+				dataFim: new Date(vagaInicial.dataFim).toISOString().split('T')[0],
+				listAreaInteresse: vagaInicial.listAreaInteresse || [],
+			});
+		}
+	}, [api, vagaInicial, isEditing]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -60,9 +73,9 @@ export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
 
 		setCarregando(true);
 		try {
-			await cadastrarVaga(formData);
+			await onSalvarVaga(formData);
 		} catch (error) {
-			setErro('Falha ao criar a vaga. ' + error.message);
+			setErro(`Falha ao salvar a vaga. ${error.message}`);
 		} finally {
 			setCarregando(false);
 		}
@@ -72,7 +85,7 @@ export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
 		<div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
 			<div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
 				<h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
-					Criar Nova Vaga
+					{isEditing ? 'Editar Vaga' : 'Criar Nova Vaga'}
 				</h1>
 				<form onSubmit={handleSubmit} className="space-y-5">
 					{/* Título */}
@@ -163,6 +176,7 @@ export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
 							multiple
 							name="listAreaInteresse"
 							id="listAreaInteresse"
+							value={formData.listAreaInteresse.map(area => area.id)}
 							onChange={handleAreaChange}
 							className="w-full h-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
 							required
@@ -189,7 +203,7 @@ export default function TelaCriarVaga({ setTela, cadastrarVaga, api }) {
 						disabled={carregando}
 						className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg disabled:bg-blue-300"
 					>
-						{carregando ? 'Publicando Vaga...' : 'Publicar Vaga'}
+						{carregando ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Publicar Vaga')}
 					</button>
 				</form>
 				<button

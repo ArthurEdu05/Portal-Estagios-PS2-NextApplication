@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
 	Building,
 	LogOut,
@@ -7,6 +8,8 @@ import {
 	Users,
 	Mail,
 	Trash2,
+	Edit,
+	ChevronDown,
 } from 'lucide-react';
 
 export default function TelaPainelEmpresa({
@@ -16,7 +19,10 @@ export default function TelaPainelEmpresa({
 	inscricoes,
 	setTela,
 	onDeletarVaga,
+	onEditarVaga,
 }) {
+	const [vagaAbertaId, setVagaAbertaId] = useState(null);
+
 	const minhasVagas = vagas.filter(
 		(vaga) => vaga.empresa?.id === usuario.id
 	);
@@ -25,6 +31,10 @@ export default function TelaPainelEmpresa({
 		return inscricoes.filter(
 			(inscricao) => inscricao.vagaEstagio?.id === vagaId
 		);
+	};
+
+	const toggleVaga = (vagaId) => {
+		setVagaAbertaId(vagaAbertaId === vagaId ? null : vagaId);
 	};
 
 	return (
@@ -58,7 +68,7 @@ export default function TelaPainelEmpresa({
 						Minhas Vagas
 					</h2>
 					<button
-						onClick={() => setTela('criar-vaga')} 
+						onClick={() => setTela('formulario-vaga')}
 						className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
 					>
 						<PlusCircle size={20} />
@@ -70,6 +80,7 @@ export default function TelaPainelEmpresa({
 					{minhasVagas.length > 0 ? (
 						minhasVagas.map((vaga) => {
 							const candidatos = getCandidatos(vaga.id);
+							const isAberta = vagaAbertaId === vaga.id;
 							return (
 								<div
 									key={vaga.id}
@@ -84,59 +95,75 @@ export default function TelaPainelEmpresa({
 												{vaga.descricao}
 											</p>
 										</div>
-										<button
-											onClick={() => onDeletarVaga(vaga.id)}
-											className="flex items-center gap-2 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition"
-										>
-											<Trash2 size={16} />
-											Excluir Vaga
-										</button>
+										<div className="flex items-center gap-2">
+											<button
+												onClick={() => onEditarVaga(vaga)}
+												className="flex items-center gap-2 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition"
+											>
+												<Edit size={16} />
+												Editar
+											</button>
+											<button
+												onClick={() => onDeletarVaga(vaga.id)}
+												className="flex items-center gap-2 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition"
+											>
+												<Trash2 size={16} />
+												Excluir
+											</button>
+										</div>
 									</div>
 									<div>
-										<h4 className="text-lg font-semibold flex items-center gap-2 mb-3">
-											<Users size={20} />
-											Candidatos Inscritos
-										</h4>
-										{candidatos.length > 0 ? (
-											<ul className="space-y-3">
-												{candidatos.map(
-													(inscricao) => (
-														<li
-															key={
-																inscricao.id
-															}
-															className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-														>
-															<span className="font-medium text-gray-700">
-																{
-																	inscricao
-																		.estudante
-																		?.nome
+										<button onClick={() => toggleVaga(vaga.id)} className="w-full text-left">
+											<h4 className="text-lg font-semibold flex items-center justify-between gap-2 mb-3 p-2 rounded-md hover:bg-gray-100 transition">
+												<span className="flex items-center gap-2">
+													<Users size={20} />
+													Candidatos Inscritos ({candidatos.length})
+												</span>
+												<ChevronDown size={20} className={`transform transition-transform ${isAberta ? 'rotate-180' : ''}`} />
+											</h4>
+										</button>
+										{isAberta && (
+											candidatos.length > 0 ? (
+												<ul className="space-y-3 pl-2 pr-2 pb-2">
+													{candidatos.map(
+														(inscricao) => (
+															<li
+																key={
+																	inscricao.id
 																}
-															</span>
-															<div className="flex items-center gap-2 text-gray-500">
-																<Mail
-																	size={
-																		16
-																	}
-																/>
-																<span>
+																className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+															>
+																<span className="font-medium text-gray-700">
 																	{
 																		inscricao
 																			.estudante
-																			?.email
+																			?.nome
 																	}
 																</span>
-															</div>
-														</li>
-													)
-												)}
-											</ul>
-										) : (
-											<p className="text-gray-500 italic">
-												Nenhum candidato inscrito
-												ainda.
-											</p>
+																<div className="flex items-center gap-2 text-gray-500">
+																	<Mail
+																		size={
+																			16
+																		}
+																	/>
+																	<span>
+																		{
+																			inscricao
+																				.estudante
+																				?.email
+																		}
+																	</span>
+																</div>
+															</li>
+														)
+													)}
+												</ul>
+											) : (
+												<p className="text-gray-500 italic px-2 pb-2">
+													Nenhum candidato inscrito
+													ainda.
+												</p>
+											)
 										)}
 									</div>
 								</div>
