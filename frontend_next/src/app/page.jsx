@@ -11,6 +11,9 @@ import TelaAdminDashboard from './components/TelaAdminDashboard';
 import TelaPainelEmpresa from './components/TelaPainelEmpresa';
 import TelaCriarVaga from './components/TelaCriarVaga';
 import TelaAreasInteresseAdmin from './components/TelaAreasInteresseAdmin';
+import TelaListaEmpresasAdmin from './components/TelaListaEmpresasAdmin';
+import TelaListaEstudantesAdmin from './components/TelaListaEstudantesAdmin';
+import TelaListaVagasAdmin from './components/TelaListaVagasAdmin';
 const API_BASE_URL = 'http://localhost:8080';
 
 const api = {
@@ -105,6 +108,20 @@ const api = {
 	listarAreas: async () => {
 		const response = await fetch(`${API_BASE_URL}/areaInteresse`);
 		if (!response.ok) throw new Error('Falha ao buscar áreas');
+		return response.json();
+	},
+
+	listarEstudantes: async (token) => {
+		const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+		const response = await fetch(`${API_BASE_URL}/estudante`, { headers });
+		if (!response.ok) throw new Error('Falha ao buscar estudantes');
+		return response.json();
+	},
+
+	listarEmpresas: async (token) => {
+		const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+		const response = await fetch(`${API_BASE_URL}/empresa`, { headers });
+		if (!response.ok) throw new Error('Falha ao buscar empresas');
 		return response.json();
 	},
 
@@ -204,6 +221,8 @@ export default function PortalEstagios() {
 	const [vagas, setVagas] = useState([]);
 	const [inscricoes, setInscricoes] = useState([]);
 	const [areasInteresse, setAreasInteresse] = useState([]);
+	const [estudantes, setEstudantes] = useState([]);
+	const [empresas, setEmpresas] = useState([]);
 	const [filtro, setFiltro] = useState('');
 
 	useEffect(() => {
@@ -219,6 +238,12 @@ export default function PortalEstagios() {
 			api.listarAreas()
 				.then(data => setAreasInteresse(data))
 				.catch(error => console.error('ERRO AO BUSCAR ÁREAS DE INTERESSE:', error));
+			api.listarEstudantes(token)
+				.then(data => setEstudantes(data))
+				.catch(error => console.error('ERRO AO BUSCAR ESTUDANTES:', error));
+			api.listarEmpresas(token)
+				.then(data => setEmpresas(data))
+				.catch(error => console.error('ERRO AO BUSCAR EMPRESAS:', error));
 		}
 
 		if (usuario && usuario.tipo === 'ESTUDANTE') {
@@ -551,6 +576,9 @@ export default function PortalEstagios() {
 				setTela={setTela}
 				usuario={usuario}
 				fazerLogout={fazerLogout}
+				vagas={vagas}
+				estudantes={estudantes}
+				empresas={empresas}
 			/>
 		);
 	}
@@ -596,6 +624,18 @@ export default function PortalEstagios() {
 
 		);
 
+	}
+
+	if (tela === 'admin-lista-empresas') {
+		return <TelaListaEmpresasAdmin setTela={setTela} empresas={empresas} />;
+	}
+
+	if (tela === 'admin-lista-estudantes') {
+		return <TelaListaEstudantesAdmin setTela={setTela} estudantes={estudantes} />;
+	}
+
+	if (tela === 'admin-lista-vagas') {
+		return <TelaListaVagasAdmin setTela={setTela} vagas={vagas} />;
 	}
 
 	return (
