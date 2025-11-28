@@ -252,19 +252,8 @@ const api = {
 			headers,
 		});
 		if (!response.ok) {
-			console.warn(
-				`Operação DELETE para vaga ${vagaId} retornou status não-OK: ${response.status}.` +
-				` Assumindo que a exclusão foi bem-sucedida conforme relatado pelo usuário.`
-			);
-
-			try {
-				const errorBody = await response.text();
-				console.warn('Resposta do backend para DELETE não-OK:', errorBody);
-			} catch (e) {
-				console.warn('Não foi possível ler o corpo da resposta de DELETE não-OK:', e);
-			}
+			throw new Error('Falha ao deletar vaga permanentemente');
 		}
-
 	},
 };
 
@@ -279,6 +268,12 @@ export default function PortalEstagios() {
 	const [empresas, setEmpresas] = useState([]);
 	const [vagaEmEdicao, setVagaEmEdicao] = useState(null);
 	const [filtro, setFiltro] = useState('');
+	const [filtroVagasAdmin, setFiltroVagasAdmin] = useState('TODAS');
+
+	const handleVerListaVagas = (filtro) => {
+		setFiltroVagasAdmin(filtro);
+		setTela('admin-lista-vagas');
+	};
 
 	useEffect(() => {
 		api.listarVagas(token)
@@ -455,9 +450,10 @@ export default function PortalEstagios() {
 		try {
 			const dadosVaga = { ...formData, empresa: { id: usuario.id } };
 
-			if (vagaEmEdicao) {
-				const vagaAtualizada = await api.atualizarVaga(vagaEmEdicao.id, dadosVaga, token);
-				setVagas(vagas.map(v => v.id === vagaEmEdicao.id ? vagaAtualizada : v));
+			if (vagaEmEdicao || formData.id) {
+				const id = vagaEmEdicao?.id || formData.id;
+				const vagaAtualizada = await api.atualizarVaga(id, dadosVaga, token);
+				setVagas(vagas.map(v => v.id === id ? vagaAtualizada : v));
 				alert('Vaga atualizada com sucesso!');
 			} else {
 				const novaVaga = await api.cadastrarVaga(dadosVaga, token);
@@ -580,12 +576,34 @@ export default function PortalEstagios() {
 
 
 	const vagasFiltradas = vagas.filter((vaga) => {
-		const isUsuarioAutorizado = !usuario || usuario.tipo === 'EMPRESA' || usuario.tipo === 'ADMIN';
-		const isVagaAberta = vaga.status === 'ABERTA';
 		const matchesFiltro = vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
-							  (vaga.empresa && vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()));
-
-		return (isUsuarioAutorizado || isVagaAberta) && matchesFiltro;
+			(vaga.empresa && vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()));
+	
+		if (!matchesFiltro) {
+			return false;
+		}
+	
+		// Lógica para estudantes
+		if (usuario?.tipo === 'ESTUDANTE') {
+			if (vaga.status !== 'ABERTA') {
+				return false;
+			}
+			// Se o estudante não tem interesses, não mostra nenhuma vaga
+			if (!usuario.listAreaInteresse || usuario.listAreaInteresse.length === 0) {
+				return false;
+			}
+			const studentInterestIds = new Set(usuario.listAreaInteresse.map(a => a.id));
+			const vagaHasMatchingInterest = vaga.listAreaInteresse.some(jobArea => studentInterestIds.has(jobArea.id));
+			return vagaHasMatchingInterest;
+		}
+	
+		// Para usuários não logados, mostrar apenas vagas abertas
+		if (!usuario) {
+			return vaga.status === 'ABERTA';
+		}
+	
+		// Para EMPRESA e ADMIN, mostrar todas as vagas (respeitando o filtro de texto)
+		return true;
 	});
 
 
@@ -668,6 +686,7 @@ export default function PortalEstagios() {
 				vagas={vagas}
 				estudantes={estudantes}
 				empresas={empresas}
+				onVerListaVagas={handleVerListaVagas}
 			/>
 		);
 	}
@@ -723,7 +742,14 @@ export default function PortalEstagios() {
 	}
 
 	if (tela === 'admin-lista-vagas') {
-		return <TelaListaVagasAdmin setTela={setTela} vagas={vagas} />;
+		return (
+			<TelaListaVagasAdmin
+				setTela={setTela}
+				vagas={vagas}
+				filtroInicial={filtroVagasAdmin}
+				onFiltroChange={setFiltroVagasAdmin}
+			/>
+		);
 	}
 
 	return (

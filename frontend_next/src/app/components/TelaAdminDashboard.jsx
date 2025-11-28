@@ -15,8 +15,12 @@ const StatCard = ({ title, value, icon, onClick }) => (
 );
 
 
-export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vagas, estudantes, empresas }) {
+export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vagas, estudantes, empresas, onVerListaVagas }) {
 	const [activeTab, setActiveTab] = useState('dashboard');
+
+	const vagasAbertasCount = vagas.filter(vaga => vaga.status === 'ABERTA').length;
+	const vagasEncerradasCount = vagas.filter(vaga => vaga.status === 'FECHADA').length;
+	const totalVagasCount = vagas.length;
 
 	const vagasPorArea = vagas.reduce((acc, vaga) => {
 		(vaga.listAreaInteresse || []).forEach(area => {
@@ -81,10 +85,12 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 				{activeTab === 'dashboard' && (
 					<div className="space-y-6">
 						{/* Stats */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							<StatCard onClick={() => setTela('admin-lista-vagas')} title="Vagas Disponíveis" value={vagas.length} icon={<Briefcase size={32} className="text-blue-500" />} />
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+							<StatCard onClick={() => onVerListaVagas('ABERTA')} title="Vagas Abertas" value={vagasAbertasCount} icon={<Briefcase size={32} className="text-green-500" />} />
+							<StatCard onClick={() => onVerListaVagas('FECHADA')} title="Vagas Encerradas" value={vagasEncerradasCount} icon={<Briefcase size={32} className="text-red-500" />} />
+							<StatCard onClick={() => onVerListaVagas('TODAS')} title="Total de Vagas" value={totalVagasCount} icon={<Briefcase size={32} className="text-blue-500" />} />
 							<StatCard onClick={() => setTela('admin-lista-estudantes')} title="Estudantes" value={estudantes.length} icon={<Users size={32} className="text-orange-500" />} />
-							<StatCard onClick={() => setTela('admin-lista-empresas')} title="Empresas" value={empresas.length} icon={<Building size={32} className="text-green-500" />} />
+							<StatCard onClick={() => setTela('admin-lista-empresas')} title="Empresas" value={empresas.length} icon={<Building size={32} className="text-blue-500" />} />
 						</div>
 
 						{/* Gráfico */}
@@ -114,3 +120,4 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 		</div>
 	);
 }
+
