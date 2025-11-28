@@ -583,12 +583,10 @@ export default function PortalEstagios() {
 			return false;
 		}
 	
-		// Lógica para estudantes
 		if (usuario?.tipo === 'ESTUDANTE') {
 			if (vaga.status !== 'ABERTA') {
 				return false;
 			}
-			// Se o estudante não tem interesses, não mostra nenhuma vaga
 			if (!usuario.listAreaInteresse || usuario.listAreaInteresse.length === 0) {
 				return false;
 			}
@@ -597,12 +595,10 @@ export default function PortalEstagios() {
 			return vagaHasMatchingInterest;
 		}
 	
-		// Para usuários não logados, mostrar apenas vagas abertas
 		if (!usuario) {
 			return vaga.status === 'ABERTA';
 		}
 	
-		// Para EMPRESA e ADMIN, mostrar todas as vagas (respeitando o filtro de texto)
 		return true;
 	});
 

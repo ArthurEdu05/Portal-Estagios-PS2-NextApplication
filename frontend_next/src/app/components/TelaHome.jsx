@@ -107,7 +107,6 @@ export default function TelaHome({
 	
 		const [vagaSelecionada, setVagaSelecionada] = useState(null);
 	
-		// Filtra para mostrar apenas vagas abertas
 		const vagasAbertas = vagasMock.filter(vaga => vaga.status === 'ABERTA');
 	
 		return (
