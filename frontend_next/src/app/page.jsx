@@ -192,6 +192,30 @@ const api = {
 		return response.json();
 	},
 
+	encerrarVaga: async (id, token) => {
+		const response = await fetch(`${API_BASE_URL}/vagaEstagio/${id}/encerrar`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		if (!response.ok) throw new Error('Falha ao encerrar vaga');
+		return response.json();
+	},
+
+	reabrirVaga: async (id, token) => {
+		const response = await fetch(`${API_BASE_URL}/vagaEstagio/${id}/reabrir`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		if (!response.ok) throw new Error('Falha ao reabrir vaga');
+		return response.json();
+	},
+
 	listarInscricoes: async (token) => {
 		const headers = {
 			'Content-Type': 'application/json',
@@ -476,33 +500,47 @@ export default function PortalEstagios() {
 	};
 
 
+	const handleEncerrarVaga = async (vagaId) => {
+		if (window.confirm('Tem certeza que deseja encerrar esta vaga? Novas inscrições não serão permitidas.')) {
+			try {
+				const vagaAtualizada = await api.encerrarVaga(vagaId, token);
+				setVagas(vagas.map(v => v.id === vagaId ? vagaAtualizada : v));
+				alert('Vaga encerrada com sucesso.');
+			} catch (error) {
+				console.error('Erro ao encerrar vaga:', error);
+				alert('Erro ao encerrar vaga: ' + error.message);
+			}
+		}
+	};
+
+	const handleReabrirVaga = async (vagaId) => {
+		if (window.confirm('Tem certeza que deseja reabrir esta vaga?')) {
+			try {
+				const vagaAtualizada = await api.reabrirVaga(vagaId, token);
+				setVagas(vagas.map(v => v.id === vagaId ? vagaAtualizada : v));
+				alert('Vaga reaberta com sucesso.');
+			} catch (error) {
+				console.error('Erro ao reabrir vaga:', error);
+				alert('Erro ao reabrir vaga: ' + error.message);
+			}
+		}
+	};
+
 	const handleDeletarVaga = async (vagaId) => {
 		if (
 			window.confirm(
-				'Tem certeza que deseja encerrar esta vaga? Esta ação não pode ser desfeita.'
+				'Tem certeza que deseja EXCLUIR PERMANENTEMENTE esta vaga? Esta ação não pode ser desfeita.'
 			)
 		) {
-
 			try {
 				await api.deletarVaga(vagaId, token);
+				setVagas(vagas.filter(v => v.id !== vagaId));
+				alert('Vaga excluída permanentemente.');
 			} catch (error) {
-
-				console.error(
-					'Erro ignorado ao deletar vaga (recarregando a lista de qualquer maneira):',
-					error
-				);
-
-
-
-			} finally {
-				alert('A vaga foi encerrada. Atualizando a lista...');
-				const vagasAtualizadas = await api.listarVagas(token);
-				setVagas(vagasAtualizadas);
-
+				console.error('Erro ao deletar vaga:', error);
+				alert('Erro ao deletar vaga: ' + error.message);
 			}
-
 		}
-
 	};
 
 	const handleCadastrarArea = async (dados) => {
@@ -541,17 +579,14 @@ export default function PortalEstagios() {
 	};
 
 
-	const vagasFiltradas = vagas.filter(
+	const vagasFiltradas = vagas.filter((vaga) => {
+		const isUsuarioAutorizado = !usuario || usuario.tipo === 'EMPRESA' || usuario.tipo === 'ADMIN';
+		const isVagaAberta = vaga.status === 'ABERTA';
+		const matchesFiltro = vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+							  (vaga.empresa && vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()));
 
-		(vaga) =>
-
-			vaga.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
-
-			(vaga.empresa &&
-
-				vaga.empresa.nome.toLowerCase().includes(filtro.toLowerCase()))
-
-	);
+		return (isUsuarioAutorizado || isVagaAberta) && matchesFiltro;
+	});
 
 
 
@@ -658,6 +693,8 @@ export default function PortalEstagios() {
 				fazerLogout={fazerLogout}
 				vagas={vagas}
 				inscricoes={inscricoes}
+				onEncerrarVaga={handleEncerrarVaga}
+				onReabrirVaga={handleReabrirVaga}
 				onDeletarVaga={handleDeletarVaga}
 				onEditarVaga={iniciarEdicaoVaga}
 			/>

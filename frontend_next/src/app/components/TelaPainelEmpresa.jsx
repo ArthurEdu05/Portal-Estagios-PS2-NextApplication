@@ -10,7 +10,22 @@ import {
 	Trash2,
 	Edit,
 	ChevronDown,
+	MapPin,
+	Clock,
+	Laptop,
+	PowerOff,
+	RefreshCw,
 } from 'lucide-react';
+
+// Helper component for status badge
+const StatusBadge = ({ status }) => {
+	const isAberta = status === 'ABERTA';
+	return (
+		<span className={`px-2 py-1 text-xs font-semibold rounded-full ${isAberta ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+			{isAberta ? 'Aberta' : 'Fechada'}
+		</span>
+	);
+};
 
 export default function TelaPainelEmpresa({
 	usuario,
@@ -18,8 +33,10 @@ export default function TelaPainelEmpresa({
 	vagas,
 	inscricoes,
 	setTela,
-	onDeletarVaga,
+	onEncerrarVaga,
+	onReabrirVaga,
 	onEditarVaga,
+	onDeletarVaga,
 }) {
 	const [vagaAbertaId, setVagaAbertaId] = useState(null);
 
@@ -68,7 +85,10 @@ export default function TelaPainelEmpresa({
 						Minhas Vagas
 					</h2>
 					<button
-						onClick={() => setTela('formulario-vaga')}
+						onClick={() => {
+							onEditarVaga(null); // Garante que o form estará em modo de criação
+							setTela('formulario-vaga');
+						}}
 						className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
 					>
 						<PlusCircle size={20} />
@@ -81,40 +101,68 @@ export default function TelaPainelEmpresa({
 						minhasVagas.map((vaga) => {
 							const candidatos = getCandidatos(vaga.id);
 							const isAberta = vagaAbertaId === vaga.id;
+							const isVagaFechada = vaga.status === 'FECHADA';
 							return (
 								<div
 									key={vaga.id}
-									className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+									className={`bg-white p-6 rounded-xl shadow-lg border border-gray-200 transition-opacity ${isVagaFechada ? 'opacity-70 bg-gray-50' : ''}`}
 								>
 									<div className="flex justify-between items-start mb-4">
 										<div>
-											<h3 className="text-2xl font-bold text-gray-800">
-												{vaga.titulo}
-											</h3>
-											<p className="text-gray-500">
-												{vaga.descricao}
-											</p>
+											<div className="flex items-center gap-3 mb-2">
+												<h3 className="text-2xl font-bold text-gray-800">
+													{vaga.titulo}
+												</h3>
+												<StatusBadge status={vaga.status} />
+											</div>
+											<div className="flex items-center flex-wrap gap-x-6 gap-y-1 text-sm text-gray-500">
+												<span className="flex items-center gap-1.5"><MapPin size={14} /> {vaga.localizacao}</span>
+												<span className="flex items-center gap-1.5"><Laptop size={14} /> {vaga.modalidade}</span>
+												<span className="flex items-center gap-1.5"><Clock size={14} /> {vaga.cargaHoraria}</span>
+											</div>
 										</div>
-										<div className="flex items-center gap-2">
-											<button
-												onClick={() => onEditarVaga(vaga)}
-												className="flex items-center gap-2 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition"
-											>
-												<Edit size={16} />
-												Editar
-											</button>
-											<button
-												onClick={() => onDeletarVaga(vaga.id)}
-												className="flex items-center gap-2 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition"
-											>
-												<Trash2 size={16} />
-												Excluir
-											</button>
+										<div className="flex items-center gap-2 flex-shrink-0 ml-4">
+											{isVagaFechada ? (
+												<>
+													<button
+														onClick={() => onReabrirVaga(vaga.id)}
+														className="flex items-center gap-2 text-sm bg-green-100 text-green-800 px-3 py-1 rounded-lg hover:bg-green-200 transition"
+													>
+														<RefreshCw size={16} />
+														Reabrir
+													</button>
+													<button
+														onClick={() => onDeletarVaga(vaga.id)}
+														className="flex items-center gap-2 text-sm bg-red-100 text-red-700 px-3 py-1 rounded-lg hover:bg-red-200 transition"
+													>
+														<Trash2 size={16} />
+														Excluir
+													</button>
+												</>
+											) : (
+												<>
+													<button
+														onClick={() => onEditarVaga(vaga)}
+														className="flex items-center gap-2 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg hover:bg-blue-200 transition"
+													>
+														<Edit size={16} />
+														Editar
+													</button>
+													<button
+														onClick={() => onEncerrarVaga(vaga.id)}
+														className="flex items-center gap-2 text-sm bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg hover:bg-yellow-200 transition"
+													>
+														<PowerOff size={16} />
+														Encerrar
+													</button>
+												</>
+											)}
 										</div>
 									</div>
+									<div className="border-t my-4"></div>
 									<div>
-										<button onClick={() => toggleVaga(vaga.id)} className="w-full text-left">
-											<h4 className="text-lg font-semibold flex items-center justify-between gap-2 mb-3 p-2 rounded-md hover:bg-gray-100 transition">
+										<button onClick={() => toggleVaga(vaga.id)} className="w-full text-left" disabled={isVagaFechada}>
+											<h4 className="text-lg font-semibold flex items-center justify-between gap-2 mb-3 p-2 rounded-md hover:bg-gray-100 transition disabled:cursor-not-allowed disabled:hover:bg-transparent">
 												<span className="flex items-center gap-2">
 													<Users size={20} />
 													Candidatos Inscritos ({candidatos.length})
@@ -131,7 +179,7 @@ export default function TelaPainelEmpresa({
 																key={
 																	inscricao.id
 																}
-																className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+																className="flex items-center justify-between p-3 bg-gray-100 rounded-lg"
 															>
 																<span className="font-medium text-gray-700">
 																	{

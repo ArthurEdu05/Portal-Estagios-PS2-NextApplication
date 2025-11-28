@@ -10,6 +10,10 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 		dataInicio: '',
 		dataFim: '',
 		listAreaInteresse: [],
+		localizacao: '',
+		modalidade: 'PRESENCIAL',
+		cargaHoraria: '',
+		requisitos: '',
 	});
 	const [areas, setAreas] = useState([]);
 	const [erro, setErro] = useState('');
@@ -24,14 +28,17 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 				setErro('Não foi possível carregar as áreas de interesse.')
 			);
 
-		// Se estiver editando, preenche o formulário com os dados da vaga
 		if (isEditing) {
 			setFormData({
-				titulo: vagaInicial.titulo,
-				descricao: vagaInicial.descricao,
-				dataInicio: new Date(vagaInicial.dataInicio).toISOString().split('T')[0],
-				dataFim: new Date(vagaInicial.dataFim).toISOString().split('T')[0],
+				titulo: vagaInicial.titulo || '',
+				descricao: vagaInicial.descricao || '',
+				dataInicio: vagaInicial.dataInicio ? new Date(vagaInicial.dataInicio).toISOString().split('T')[0] : '',
+				dataFim: vagaInicial.dataFim ? new Date(vagaInicial.dataFim).toISOString().split('T')[0] : '',
 				listAreaInteresse: vagaInicial.listAreaInteresse || [],
+				localizacao: vagaInicial.localizacao || '',
+				modalidade: vagaInicial.modalidade || 'PRESENCIAL',
+				cargaHoraria: vagaInicial.cargaHoraria || '',
+				requisitos: vagaInicial.requisitos || '',
 			});
 		}
 	}, [api, vagaInicial, isEditing]);
@@ -65,15 +72,20 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 			!formData.descricao ||
 			!formData.dataInicio ||
 			!formData.dataFim ||
+			!formData.localizacao ||
+			!formData.cargaHoraria ||
+			!formData.requisitos ||
 			formData.listAreaInteresse.length === 0
 		) {
-			setErro('Todos os campos são obrigatórios.');
+			setErro('Todos os campos marcados com * são obrigatórios.');
 			return;
 		}
 
 		setCarregando(true);
 		try {
-			await onSalvarVaga(formData);
+			// Pass the correct ID when editing
+			const dataToSave = isEditing ? { ...formData, id: vagaInicial.id } : formData;
+			await onSalvarVaga(dataToSave);
 		} catch (error) {
 			setErro(`Falha ao salvar a vaga. ${error.message}`);
 		} finally {
@@ -82,134 +94,79 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 	};
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-			<div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8">
+		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+			<div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 my-8">
 				<h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
 					{isEditing ? 'Editar Vaga' : 'Criar Nova Vaga'}
 				</h1>
-				<form onSubmit={handleSubmit} className="space-y-5">
-					{/* Título */}
+				<form onSubmit={handleSubmit} className="space-y-4">
 					<div>
-						<label
-							htmlFor="titulo"
-							className="block text-sm font-medium text-gray-700 mb-1"
-						>
-							Título da Vaga *
-						</label>
-						<input
-							type="text"
-							name="titulo"
-							id="titulo"
-							value={formData.titulo}
-							onChange={handleChange}
-							className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-							required
-						/>
+						<label htmlFor="titulo" className="block text-sm font-medium text-gray-700 mb-1">Título da Vaga *</label>
+						<input type="text" name="titulo" id="titulo" value={formData.titulo} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
 					</div>
 
-					{/* Descrição */}
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div>
+							<label htmlFor="localizacao" className="block text-sm font-medium text-gray-700 mb-1">Localização *</label>
+							<input type="text" name="localizacao" id="localizacao" value={formData.localizacao} onChange={handleChange} placeholder="Ex: São Paulo, SP" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+						</div>
+						<div>
+							<label htmlFor="cargaHoraria" className="block text-sm font-medium text-gray-700 mb-1">Carga Horária *</label>
+							<input type="text" name="cargaHoraria" id="cargaHoraria" value={formData.cargaHoraria} onChange={handleChange} placeholder="Ex: 30 horas/semana" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+						</div>
+					</div>
+					
 					<div>
-						<label
-							htmlFor="descricao"
-							className="block text-sm font-medium text-gray-700 mb-1"
-						>
-							Descrição *
-						</label>
-						<textarea
-							name="descricao"
-							id="descricao"
-							value={formData.descricao}
-							onChange={handleChange}
-							rows={4}
-							className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-							required
-						/>
+						<label htmlFor="modalidade" className="block text-sm font-medium text-gray-700 mb-1">Modalidade *</label>
+						<select name="modalidade" id="modalidade" value={formData.modalidade} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white" required>
+							<option value="PRESENCIAL">Presencial</option>
+							<option value="REMOTO">Remoto</option>
+							<option value="HIBRIDO">Híbrido</option>
+						</select>
 					</div>
 
-					{/* Data de Início e Fim */}
+					<div>
+						<label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">Descrição Detalhada da Vaga *</label>
+						<textarea name="descricao" id="descricao" value={formData.descricao} onChange={handleChange} rows={5} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+					</div>
+					
+					<div>
+						<label htmlFor="requisitos" className="block text-sm font-medium text-gray-700 mb-1">Requisitos da Vaga *</label>
+						<textarea name="requisitos" id="requisitos" value={formData.requisitos} onChange={handleChange} rows={5} placeholder="Liste os requisitos, um por linha..." className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+					</div>
+
 					<div className="grid grid-cols-2 gap-4">
 						<div>
-							<label
-								htmlFor="dataInicio"
-								className="block text-sm font-medium text-gray-700 mb-1"
-							>
-								Data de Início *
-							</label>
-							<input
-								type="date"
-								name="dataInicio"
-								id="dataInicio"
-								value={formData.dataInicio}
-								onChange={handleChange}
-								className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-								required
-							/>
+							<label htmlFor="dataInicio" className="block text-sm font-medium text-gray-700 mb-1">Data de Início *</label>
+							<input type="date" name="dataInicio" id="dataInicio" value={formData.dataInicio} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
 						</div>
 						<div>
-							<label
-								htmlFor="dataFim"
-								className="block text-sm font-medium text-gray-700 mb-1"
-							>
-								Data de Fim *
-							</label>
-							<input
-								type="date"
-								name="dataFim"
-								id="dataFim"
-								value={formData.dataFim}
-								onChange={handleChange}
-								className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-								required
-							/>
+							<label htmlFor="dataFim" className="block text-sm font-medium text-gray-700 mb-1">Data de Fim *</label>
+							<input type="date" name="dataFim" id="dataFim" value={formData.dataFim} onChange={handleChange} className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
 						</div>
 					</div>
 
-					{/* Áreas de Interesse */}
 					<div>
-						<label
-							htmlFor="listAreaInteresse"
-							className="block text-sm font-medium text-gray-700 mb-1"
-						>
-							Áreas de Interesse *
-						</label>
-						<select
-							multiple
-							name="listAreaInteresse"
-							id="listAreaInteresse"
-							value={formData.listAreaInteresse.map(area => area.id)}
-							onChange={handleAreaChange}
-							className="w-full h-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-							required
-						>
+						<label htmlFor="listAreaInteresse" className="block text-sm font-medium text-gray-700 mb-1">Áreas de Interesse *</label>
+						<select multiple name="listAreaInteresse" id="listAreaInteresse" value={formData.listAreaInteresse.map(area => area.id)} onChange={handleAreaChange} className="w-full h-32 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
 							{areas.map((area) => (
 								<option key={area.id} value={area.id}>
 									{area.titulo}
 								</option>
 							))}
 						</select>
-						<p className="text-xs text-gray-500 mt-1">
-							Segure Ctrl (ou Cmd) para selecionar várias.
-						</p>
+						<p className="text-xs text-gray-500 mt-1">Segure Ctrl (ou Cmd) para selecionar várias.</p>
 					</div>
 
 					{erro && (
-						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-							{erro}
-						</div>
+						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{erro}</div>
 					)}
 
-					<button
-						type="submit"
-						disabled={carregando}
-						className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg disabled:bg-blue-300"
-					>
+					<button type="submit" disabled={carregando} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg disabled:bg-blue-300">
 						{carregando ? 'Salvando...' : (isEditing ? 'Salvar Alterações' : 'Publicar Vaga')}
 					</button>
 				</form>
-				<button
-					onClick={() => setTela('minhas-vagas')}
-					className="w-full mt-4 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition"
-				>
+				<button onClick={() => setTela('minhas-vagas')} className="w-full mt-4 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition">
 					<ArrowLeft size={18} />
 					Voltar ao Painel
 				</button>
