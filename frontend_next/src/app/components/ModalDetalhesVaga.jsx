@@ -69,7 +69,7 @@ export default function ModalDetalhesVaga({
 					<div className="flex items-center gap-2"><MapPin size={20} className="text-blue-600" /><span>{vaga.localizacao}</span></div>
 					<div className="flex items-center gap-2"><Laptop size={20} className="text-blue-600" /><span>{vaga.modalidade}</span></div>
 					<div className="flex items-center gap-2"><Clock size={20} className="text-blue-600" /><span>{vaga.cargaHoraria}</span></div>
-					<div className="flex items-center gap-2"><CalendarDays size={20} className="text-blue-600" /><span>Encerra em {new Date(vaga.dataFim).toLocaleDateString()}</span></div>
+					<div className="flex items-center gap-2"><CalendarDays size={20} className="text-blue-600" /><span>Encerra em {new Date(vaga.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span></div>
 				</div>
 
 				<div className="space-y-6 mb-8">

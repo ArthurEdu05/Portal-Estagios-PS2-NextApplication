@@ -276,13 +276,52 @@ export default function PortalEstagios() {
 	};
 
 	useEffect(() => {
-		api.listarVagas(token)
-			.then((data) => {
-				setVagas(data);
-			})
-			.catch((error) => {
-				console.error('ERRO AO BUSCAR VAGAS DO BACKEND:', error);
-			});
+		const hoje = new Date();
+		hoje.setHours(0, 0, 0, 0); 
+
+		const verificarEAtualizarVagas = async () => {
+			try {
+				const vagasRecebidas = await api.listarVagas(token);
+				let algumaVagaAtualizada = false;
+				const promises = [];
+
+				for (const vaga of vagasRecebidas) {
+					const dataFim = new Date(vaga.dataFim);
+					dataFim.setHours(0, 0, 0, 0);
+
+					const dataInicio = new Date(vaga.dataInicio);
+					dataInicio.setHours(0, 0, 0, 0);
+					
+
+					// se a vaga está ABERTA mas já expirou
+					if (vaga.status === 'ABERTA' && dataFim < hoje) {
+						promises.push(api.encerrarVaga(vaga.id, token));
+						algumaVagaAtualizada = true;
+					}
+					
+					// se a vaga está FECHADA mas deveria estar aberta
+					else if (vaga.status === 'FECHADA' && dataInicio <= hoje && dataFim >= hoje) {
+						promises.push(api.reabrirVaga(vaga.id, token));
+						algumaVagaAtualizada = true;
+					}
+				}
+
+				if (algumaVagaAtualizada) {
+					await Promise.all(promises);
+					// busca as vagas novamente para ter a lista mais atualizada
+					const vagasAtualizadas = await api.listarVagas(token);
+					setVagas(vagasAtualizadas);
+				} else {
+					// Se nenhuma vaga foi atualizada, apenas seta as vagas recebidas
+					setVagas(vagasRecebidas);
+				}
+
+			} catch (error) {
+				console.error('ERRO AO BUSCAR E VERIFICAR VAGAS DO BACKEND:', error);
+			}
+		};
+
+		verificarEAtualizarVagas();
 		
 		api.listarAreas()
 			.then(data => setAreasInteresse(data))
