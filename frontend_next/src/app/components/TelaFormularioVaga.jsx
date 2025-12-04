@@ -37,7 +37,7 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 				listAreaInteresse: vagaInicial.listAreaInteresse || [],
 				localizacao: vagaInicial.localizacao || '',
 				modalidade: vagaInicial.modalidade || 'PRESENCIAL',
-				cargaHoraria: vagaInicial.cargaHoraria || '',
+				cargaHoraria: vagaInicial.cargaHoraria ? String(vagaInicial.cargaHoraria).replace(/[^0-9]/g, '') : '',
 				requisitos: vagaInicial.requisitos || '',
 			});
 		}
@@ -83,8 +83,14 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 
 		setCarregando(true);
 		try {
+			// Append " horas" to cargaHoraria before saving
+			const dataToSend = {
+				...formData,
+				cargaHoraria: `${formData.cargaHoraria} horas`,
+			};
+
 			// Pass the correct ID when editing
-			const dataToSave = isEditing ? { ...formData, id: vagaInicial.id } : formData;
+			const dataToSave = isEditing ? { ...dataToSend, id: vagaInicial.id } : dataToSend;
 			await onSalvarVaga(dataToSave);
 		} catch (error) {
 			setErro(`Falha ao salvar a vaga. ${error.message}`);
@@ -108,11 +114,25 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>
 							<label htmlFor="localizacao" className="block text-sm font-medium text-gray-700 mb-1">Localização *</label>
-							<input type="text" name="localizacao" id="localizacao" value={formData.localizacao} onChange={handleChange} placeholder="Ex: São Paulo, SP" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+							<input type="text" name="localizacao" id="localizacao" value={formData.localizacao} onChange={handleChange} placeholder="Ex: SP" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
 						</div>
 						<div>
 							<label htmlFor="cargaHoraria" className="block text-sm font-medium text-gray-700 mb-1">Carga Horária *</label>
-							<input type="text" name="cargaHoraria" id="cargaHoraria" value={formData.cargaHoraria} onChange={handleChange} placeholder="Ex: 30 horas/semana" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+							<div className="relative">
+								<input
+									type="number"
+									name="cargaHoraria"
+									id="cargaHoraria"
+									value={formData.cargaHoraria}
+									onChange={handleChange}
+									placeholder="30"
+									className="w-full px-4 py-2 pr-16 border rounded-lg focus:ring-2 focus:ring-blue-500"
+									required
+								/>
+								<span className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 pointer-events-none">
+									horas
+								</span>
+							</div>
 						</div>
 					</div>
 					
@@ -132,7 +152,7 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 					
 					<div>
 						<label htmlFor="requisitos" className="block text-sm font-medium text-gray-700 mb-1">Requisitos da Vaga *</label>
-						<textarea name="requisitos" id="requisitos" value={formData.requisitos} onChange={handleChange} rows={5} placeholder="Liste os requisitos, um por linha..." className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+						<textarea name="requisitos" id="requisitos" value={formData.requisitos} onChange={handleChange} rows={5} placeholder="Liste os requisitos da vaga" className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
 					</div>
 
 					<div className="grid grid-cols-2 gap-4">
