@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { UserCog } from 'lucide-react';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
 
 export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 	const [formData, setFormData] = useState({
@@ -31,8 +32,8 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 			setErro('Email inválido');
 			return false;
 		}
-		if (formData.senha.length < 6) {
-			setErro('Senha deve ter no mínimo 6 caracteres');
+		if (formData.senha.length < 8) {
+			setErro('Senha deve ter no mínimo 8 caracteres');
 			return false;
 		}
 		if (formData.senha !== formData.confirmarSenha) {
@@ -137,9 +138,10 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 							value={formData.senha}
 							onChange={handleChange}
 							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
-							placeholder="Mínimo 6 caracteres"
+							placeholder="Mínimo 8 caracteres"
 							required
 						/>
+						{formData.senha && <PasswordStrengthMeter password={formData.senha} />}
 					</div>
 
 					<div>

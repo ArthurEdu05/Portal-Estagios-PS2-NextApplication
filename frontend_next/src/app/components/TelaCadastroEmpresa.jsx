@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import PasswordStrengthMeter from './PasswordStrengthMeter';
 
 export default function TelaCadastroEmpresa({ setTela }) {
 	const [formData, setFormData] = useState({
@@ -8,6 +9,7 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		cnpj: '',
 		email: '',
 		senha: '',
+		confirmarSenha: '', 
 	});
 	const [erro, setErro] = useState('');
 	const [carregando, setCarregando] = useState(false);
@@ -55,8 +57,12 @@ export default function TelaCadastroEmpresa({ setTela }) {
 			setErro('Email inválido');
 			return false;
 		}
-		if (formData.senha.length < 6) {
-			setErro('A senha deve ter pelo menos 6 caracteres');
+		if (formData.senha.length < 8) {
+			setErro('A senha deve ter pelo menos 8 caracteres');
+			return false;
+		}
+		if (formData.senha !== formData.confirmarSenha) { // Validação de senhas
+			setErro('As senhas não coincidem');
 			return false;
 		}
 		return true;
@@ -163,7 +169,6 @@ export default function TelaCadastroEmpresa({ setTela }) {
 						/>
 					</div>
 
-					{/* NOVO CAMPO SENHA */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Senha *
@@ -174,7 +179,23 @@ export default function TelaCadastroEmpresa({ setTela }) {
 							value={formData.senha}
 							onChange={handleChange}
 							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-							placeholder="Crie uma senha"
+							placeholder="Crie uma senha forte"
+							required
+						/>
+						{formData.senha && <PasswordStrengthMeter password={formData.senha} />}
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-1">
+							Confirmar Senha *
+						</label>
+						<input
+							type="password"
+							name="confirmarSenha"
+							value={formData.confirmarSenha}
+							onChange={handleChange}
+							className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+							placeholder="Digite a senha novamente"
 							required
 						/>
 					</div>
