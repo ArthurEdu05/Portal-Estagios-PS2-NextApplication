@@ -14,6 +14,7 @@ import TelaAreasInteresseAdmin from './components/TelaAreasInteresseAdmin';
 import TelaListaEmpresasAdmin from './components/TelaListaEmpresasAdmin';
 import TelaListaEstudantesAdmin from './components/TelaListaEstudantesAdmin';
 import TelaListaVagasAdmin from './components/TelaListaVagasAdmin';
+import TelaMinhasCandidaturas from './components/TelaMinhasCandidaturas';
 const API_BASE_URL = 'http://localhost:8080';
 
 const api = {
@@ -783,6 +784,18 @@ export default function PortalEstagios() {
 				vagas={vagas}
 				filtroInicial={filtroVagasAdmin}
 				onFiltroChange={setFiltroVagasAdmin}
+			/>
+		);
+	}
+
+	if (tela === 'minhas-candidaturas') {
+		return (
+			<TelaMinhasCandidaturas
+				setTela={setTela}
+				inscricoes={inscricoes}
+				vagas={vagas}
+				onCancelarInscricao={handleCancelarInscricao}
+				usuario={usuario}
 			/>
 		);
 	}
