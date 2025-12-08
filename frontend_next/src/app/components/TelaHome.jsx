@@ -106,8 +106,48 @@ export default function TelaHome({
 	}) {
 	
 		const [vagaSelecionada, setVagaSelecionada] = useState(null);
+		const [selectedModalidade, setSelectedModalidade] = useState('TODAS');
+		const [selectedLocalizacao, setSelectedLocalizacao] = useState('TODAS');
+		const [localizacoesDisponiveis, setLocalizacoesDisponiveis] = useState([]);
+		const [sortOrder, setSortOrder] = useState('MAIS_RECENTES'); // 'MAIS_RECENTES' ou 'MAIS_ANTIGAS'
 	
 		const vagasAbertas = vagasMock.filter(vaga => vaga.status === 'ABERTA');
+
+		useEffect(() => {
+			const uniqueLocalizacoes = ['TODAS', ...new Set(vagasAbertas.map(vaga => vaga.localizacao))];
+			setLocalizacoesDisponiveis(uniqueLocalizacoes);
+		}, [vagasAbertas]);
+		
+		const vagasFiltradasESorteadas = React.useMemo(() => {
+			let vagasProcessadas = [...vagasAbertas];
+	
+			// Filtrar por modalidade
+			if (selectedModalidade !== 'TODAS') {
+				vagasProcessadas = vagasProcessadas.filter(
+					(vaga) => vaga.modalidade === selectedModalidade
+				);
+			}
+	
+			// Filtrar por localização
+			if (selectedLocalizacao !== 'TODAS') {
+				vagasProcessadas = vagasProcessadas.filter(
+					(vaga) => vaga.localizacao === selectedLocalizacao
+				);
+			}
+	
+			// Ordenar por data de início
+			vagasProcessadas.sort((a, b) => {
+				const dateA = new Date(a.dataInicio);
+				const dateB = new Date(b.dataInicio);
+				if (sortOrder === 'MAIS_RECENTES') {
+					return dateB.getTime() - dateA.getTime();
+				} else {
+					return dateA.getTime() - dateB.getTime();
+				}
+			});
+	
+			return vagasProcessadas;
+		}, [vagasAbertas, selectedModalidade, selectedLocalizacao, sortOrder]);
 	
 		return (
 			<div className="min-h-screen bg-gray-100">
@@ -229,9 +269,54 @@ export default function TelaHome({
 						<h3 className="text-2xl font-bold mb-6">
 							{usuario ? 'Vagas Disponíveis' : 'Vagas em Destaque'}
 						</h3>
+
+						<div className="flex flex-wrap gap-4 mb-6">
+							<div className="flex-1 min-w-[150px]">
+								<label htmlFor="modalidade-filter" className="block text-sm font-medium text-gray-700 mb-1">Modalidade</label>
+								<select
+									id="modalidade-filter"
+									className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
+									value={selectedModalidade}
+									onChange={(e) => setSelectedModalidade(e.target.value)}
+								>
+									<option value="TODAS">Todas</option>
+									<option value="PRESENCIAL">Presencial</option>
+									<option value="REMOTO">Remoto</option>
+									<option value="HIBRIDO">Híbrido</option>
+								</select>
+							</div>
+
+							<div className="flex-1 min-w-[150px]">
+								<label htmlFor="localizacao-filter" className="block text-sm font-medium text-gray-700 mb-1">Localização</label>
+								<select
+									id="localizacao-filter"
+									className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
+									value={selectedLocalizacao}
+									onChange={(e) => setSelectedLocalizacao(e.target.value)}
+								>
+									{localizacoesDisponiveis.map(loc => (
+										<option key={loc} value={loc}>{loc}</option>
+									))}
+								</select>
+							</div>
+
+							<div className="flex-1 min-w-[150px]">
+								<label htmlFor="sort-order" className="block text-sm font-medium text-gray-700 mb-1">Ordenar por Data</label>
+								<select
+									id="sort-order"
+									className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md shadow-sm"
+									value={sortOrder}
+									onChange={(e) => setSortOrder(e.target.value)}
+								>
+									<option value="MAIS_RECENTES">Mais Recentes</option>
+									<option value="MAIS_ANTIGAS">Mais Antigas</option>
+								</select>
+							</div>
+						</div>
+
 						<div className="grid gap-4">
-							{vagasAbertas && vagasAbertas.length > 0 ? (
-								vagasAbertas.map((vaga) => (
+							{vagasFiltradasESorteadas && vagasFiltradasESorteadas.length > 0 ? (
+								vagasFiltradasESorteadas.map((vaga) => (
 									<div
 										key={vaga.id}
 										className="border rounded-lg p-6 hover:shadow-md transition"
