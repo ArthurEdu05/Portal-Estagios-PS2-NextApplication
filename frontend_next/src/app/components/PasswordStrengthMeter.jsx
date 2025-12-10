@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Componente que mede e exibe a força de uma senha.
+ * Fornece feedback visual (uma barra de progresso colorida) e textual (ex: "Fraca", "Média", "Boa", "Forte").
+ * A força é calculada com base em critérios como comprimento, e a presença de números, letras maiúsculas/minúsculas e caracteres especiais.
+ */
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -10,6 +16,17 @@ const PasswordStrengthMeter = ({ password }) => {
         width: '0%',
     });
 
+    /**
+     * Calcula a força da senha com base em um conjunto de regras.
+     * A pontuação é incrementada para cada regra que a senha satisfaz.
+     * As regras são:
+     * - Pelo menos 8 caracteres de comprimento.
+     * - Contém pelo menos um número.
+     * - Contém letras maiúsculas and minúsculas.
+     * - Contém pelo menos um caractere especial.
+     *
+     * @param {string} pass - A senha a ser calculada.
+     */
     const calculateStrength = (pass) => {
         let score = 0;
         const validations = {
@@ -25,12 +42,14 @@ const PasswordStrengthMeter = ({ password }) => {
         if (validations.lowercase && validations.uppercase) score++;
         if (validations.specialChar) score++;
 
+        // Se a senha não for vazia mas não atingir nenhum critério, define a pontuação como 1 (fraca).
         if (pass.length > 0 && score === 0) score = 1; 
 
         let label = '';
         let color = 'bg-gray-200';
         let width = '0%';
 
+        // Define o rótulo, a cor e a largura da barra preenchida com base na pontuação.
         switch (score) {
             case 1:
                 label = 'Fraca';
@@ -58,6 +77,7 @@ const PasswordStrengthMeter = ({ password }) => {
                 width = '0%';
         }
         
+        // Reseta o medidor se a senha estiver vazia.
         if (pass.length === 0) {
             label = '';
             width = '0%';
@@ -66,6 +86,7 @@ const PasswordStrengthMeter = ({ password }) => {
         setStrength({ score, label, color, width });
     };
 
+    // Recalcula a força sempre que a senha mudar.
     useEffect(() => {
         calculateStrength(password);
     }, [password]);
@@ -88,6 +109,7 @@ const PasswordStrengthMeter = ({ password }) => {
                     style={{ width: strength.width }}
                 ></div>
             </div>
+            {/* Exibe uma mensagem de erro se a senha tiver menos de 8 caracteres. Esse é o único requisito obrigatório que uma senha deve ter, os outros são opcionais para trazer uma melhor segurança pro usuário */}
             {password.length > 0 && password.length < 8 && (
                 <p className="text-red-500 text-xs mt-1">
                     A senha deve ter pelo menos 8 caracteres.

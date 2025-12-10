@@ -1,7 +1,21 @@
+/**
+ * @fileoverview Componente da tela de listagem de empresas para o administrador.
+ * Exibe uma lista de todas as empresas cadastradas no sistema, mostrando
+ * informações básicas como nome, email e CNPJ.
+ * Permite ao administrador visualizar rapidamente as empresas registradas.
+ */
+
 'use client';
 import React from 'react';
 import { ArrowLeft, Building } from 'lucide-react';
 
+/**
+ * Renderiza a tela de listagem de empresas para o administrador.
+ *
+ * @param {function} props.setTela - Função para navegar de volta ao dashboard do administrador.
+ * @param {Array<object>} props.empresas - A lista de objetos de empresas a serem exibidas.
+ * @returns {JSX.Element} A tela de listagem de empresas.
+ */
 export default function TelaListaEmpresasAdmin({ setTela, empresas }) {
     return (
         <div className="min-h-screen bg-gray-50">

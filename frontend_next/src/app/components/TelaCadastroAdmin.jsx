@@ -1,19 +1,38 @@
+/**
+ * @fileoverview Componente de formulário para o cadastro de novos administradores no sistema.
+ * Inclui campos para nome, email, senha e confirmação de senha, com validações de entrada
+ * e um medidor de força de senha para feedback ao usuário.
+ */
+
 'use client';
 
 import React, { useState } from 'react';
 import { UserCog } from 'lucide-react';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 
+/**
+ * Renderiza o formulário de cadastro para um novo administrador.
+ *
+ * @param {function} props.setTela - Função para navegar para outras telas (ex: login, escolha de cadastro).
+ * @param {function} props.cadastrarAdmin - Função assíncrona para submeter os dados do novo administrador.
+ */
 export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
+	// Estado para armazenar os dados do formulário.
 	const [formData, setFormData] = useState({
 		nome: '',
 		email: '',
 		senha: '',
 		confirmarSenha: '',
 	});
+	// Estado para armazenar mensagens de erro.
 	const [erro, setErro] = useState('');
+	// Estado para controlar o feedback de carregamento durante a submissão.
 	const [carregando, setCarregando] = useState(false);
 
+	/**
+	 * Atualiza o estado do formulário conforme o usuário digita nos campos.
+	 * @param {React.ChangeEvent<HTMLInputElement>} e - O evento de mudança do input.
+	 */
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -23,6 +42,10 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 		setErro('');
 	};
 
+	/**
+	 * Valida os dados do formulário antes da submissão.
+	 * @returns {boolean} `true` se o formulário for válido, `false` caso contrário.
+	 */
 	const validarFormulario = () => {
 		if (!formData.nome.trim()) {
 			setErro('Nome é obrigatório');
@@ -43,6 +66,11 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 		return true;
 	};
 
+	/**
+	 * Manipula a submissão do formulário.
+	 * Realiza a validação e, se for bem-sucedido, chama a função `cadastrarAdmin`.
+	 * @param {React.FormEvent} e - O evento de submissão do formulário.
+	 */
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setErro('');
@@ -141,6 +169,7 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 							placeholder="Mínimo 8 caracteres"
 							required
 						/>
+						{/* Renderiza o medidor de força da senha quando o campo não está vazio */}
 						{formData.senha && <PasswordStrengthMeter password={formData.senha} />}
 					</div>
 
@@ -163,6 +192,7 @@ export default function TelaCadastroAdmin({ setTela, cadastrarAdmin }) {
 						/>
 					</div>
 
+					{/* Exibe a mensagem de erro, se houver */}
 					{erro && (
 						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
 							{erro}

@@ -1,7 +1,20 @@
+/**
+ * @fileoverview Componente da tela de listagem de estudantes para o administrador.
+ * Exibe uma lista de todos os estudantes cadastrados no sistema, mostrando
+ * informações básicas como nome, email e CPF.
+ * Permite ao administrador visualizar rapidamente os estudantes registrados.
+ */
+
 'use client';
 import React from 'react';
 import { ArrowLeft, Users } from 'lucide-react';
 
+/**
+ * Renderiza a tela de listagem de estudantes para o administrador.
+ *
+ * @param {function} props.setTela - Função para navegar de volta ao dashboard do administrador.
+ * @param {Array<object>} props.estudantes - A lista de objetos de estudantes a serem exibidas.
+ */
 export default function TelaListaEstudantesAdmin({ setTela, estudantes }) {
     return (
         <div className="min-h-screen bg-gray-50">

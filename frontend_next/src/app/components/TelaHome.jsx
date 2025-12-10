@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Componente da página inicial (Home).
+ * Serve como a principal landing page da aplicação, exibindo conteúdo diferente
+ * para usuários logados e não logados.
+ * Para estudantes, exibe um dashboard com estatísticas e um gerenciador de áreas de interesse.
+ * Para todos os usuários, exibe uma lista de vagas abertas com filtros e ordenação.
+ * Para usuários não logados, exibe seções sobre a plataforma.
+ */
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
@@ -14,26 +23,46 @@ import {
 } from 'lucide-react';
 import ModalDetalhesVaga from './ModalDetalhesVaga';
 
+/**
+ * Componente para estudantes gerenciarem suas áreas de interesse.
+ * Permite que o usuário selecione/desselecione áreas e salve suas preferências.
+ *
+ * @param {object} props.usuario - O objeto do usuário logado.
+ * @param {Array<object>} props.areasInteresse - Lista de todas as áreas de interesse disponíveis.
+ * @param {function} props.onSalvarInteresses - Função para salvar as áreas de interesse selecionadas.
+ * @returns {JSX.Element} Uma seção para gerenciamento de interesses.
+ */
 const GerenciarInteresses = ({ usuario, areasInteresse, onSalvarInteresses }) => {
+	// Estado para controlar se a seção está aberta ou fechada.
 	const [aberto, setAberto] = useState(false);
+	// Estado para as áreas de interesse selecionadas pelo usuário.
 	const [selecionadas, setSelecionadas] = useState(usuario.listAreaInteresse || []);
+	// Estado de carregamento para o botão de salvar.
 	const [carregando, setCarregando] = useState(false);
 
+	// Efeito para sincronizar as áreas selecionadas se a prop do usuário mudar.
 	useEffect(() => {
 		setSelecionadas(usuario.listAreaInteresse || []);
 	}, [usuario.listAreaInteresse]);
 
 
+	/**
+	 * Manipula a mudança de estado de um checkbox de área de interesse.
+	 * @param {object} area - O objeto da área que foi clicada.
+	 */
 	const handleCheckboxChange = (area) => {
 		setSelecionadas(prev => {
 			if (prev.some(a => a.id === area.id)) {
-				return prev.filter(a => a.id !== area.id);
+				return prev.filter(a => a.id !== area.id); // Desmarca
 			} else {
-				return [...prev, area];
+				return [...prev, area]; // Marca
 			}
 		});
 	};
 
+	/**
+	 * Salva as áreas de interesse selecionadas e fecha a seção.
+	 */
 	const handleSalvar = async () => {
 		setCarregando(true);
 		await onSalvarInteresses(selecionadas);
@@ -43,6 +72,7 @@ const GerenciarInteresses = ({ usuario, areasInteresse, onSalvarInteresses }) =>
 
 	return (
 		<div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+			{/* Dica para o usuário sobre as áreas de interesse*/}
 			<div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg flex items-start gap-3 mb-4">
 				<Info size={24} className="flex-shrink-0 mt-1" />
 				<div>
@@ -92,7 +122,20 @@ const GerenciarInteresses = ({ usuario, areasInteresse, onSalvarInteresses }) =>
 	);
 };
 
-
+/**
+ * Componente principal da página Home.
+ *
+ * @param {function} props.setTela - Função para navegar para outras telas.
+ * @param {Array<object>} props.vagasMock - Lista de vagas a serem exibidas.
+ * @param {object} props.usuario - O objeto do usuário logado (pode ser nulo).
+ * @param {function} props.onInscrever - Função para se inscrever em uma vaga.
+ * @param {function} props.fazerLogout - Função para fazer logout caso logado.
+ * @param {Array<object>} props.inscricoes - Lista de inscrições do usuário caso logado como estudante.
+ * @param {function} props.onCancelarInscricao - Função para cancelar uma inscrição caso logado como estudante.
+ * @param {Array<object>} props.areasInteresse - Lista de todas as áreas de interesse.
+ * @param {function} props.onSalvarInteresses - Função para salvar as áreas de interesse do usuário caso logado como estudante.
+ * @returns {JSX.Element} A página Home completa.
+ */
 export default function TelaHome({
 	setTela,
 	vagasMock,
@@ -105,19 +148,28 @@ export default function TelaHome({
 		onSalvarInteresses,
 	}) {
 	
+		// Estado para controlar o modal de detalhes da vaga.
 		const [vagaSelecionada, setVagaSelecionada] = useState(null);
+		// Estados para os filtros de vagas.
 		const [selectedModalidade, setSelectedModalidade] = useState('TODAS');
 		const [selectedLocalizacao, setSelectedLocalizacao] = useState('TODAS');
 		const [localizacoesDisponiveis, setLocalizacoesDisponiveis] = useState([]);
+		// Estado para a ordenação das vagas.
 		const [sortOrder, setSortOrder] = useState('MAIS_RECENTES'); // 'MAIS_RECENTES' ou 'MAIS_ANTIGAS'
 	
+		// Filtra apenas as vagas com status 'ABERTA'.
 		const vagasAbertas = vagasMock.filter(vaga => vaga.status === 'ABERTA');
 
+		// Efeito para extrair as localizações únicas das vagas para o filtro.
 		useEffect(() => {
 			const uniqueLocalizacoes = ['TODAS', ...new Set(vagasAbertas.map(vaga => vaga.localizacao))];
 			setLocalizacoesDisponiveis(uniqueLocalizacoes);
 		}, [vagasAbertas]);
 		
+		/**
+		 * Memoriza o resultado da filtragem e ordenação das vagas.
+		 * Evita recalcular a lista a cada renderização, melhorando a performance.
+		 */
 		const vagasFiltradasESorteadas = React.useMemo(() => {
 			let vagasProcessadas = [...vagasAbertas];
 	
@@ -160,6 +212,7 @@ export default function TelaHome({
 							</h1>
 						</div>
 						<div className="flex gap-4 items-center">
+							{/* Renderização condicional: botões para usuário logado vs. não logado */}
 							{usuario ? (
 								<>
 									<span className="font-medium text-gray-700 hidden sm:block">
@@ -198,6 +251,7 @@ export default function TelaHome({
 				</nav>
 	
 				<main className="max-w-7xl mx-auto px-6 py-10">
+					{/* Seção do Dashboard do Estudante */}
 					{usuario?.tipo === 'ESTUDANTE' && (
 						<>
 							<div className="mb-8">
@@ -218,6 +272,7 @@ export default function TelaHome({
 								</div>
 							</div>
 
+							{/* Componente para gerenciar interesses do estudante */}
 							<GerenciarInteresses
 								usuario={usuario}
 								areasInteresse={areasInteresse}
@@ -225,6 +280,7 @@ export default function TelaHome({
 							/>
 						</>
 					)}
+					{/* Seção de infromações do portal para usuários não logados */}
 					{!usuario && (
 						<>
 							<div className="text-center mb-16">
@@ -285,11 +341,13 @@ export default function TelaHome({
 						</>
 					)}
 	
+					{/* Seção da Lista de Vagas */}
 					<div className="bg-white rounded-xl shadow-lg p-8">
 						<h3 className="text-2xl font-bold mb-6">
 							{usuario ? 'Vagas Disponíveis' : 'Vagas em Destaque'}
 						</h3>
 
+						{/* Filtros e Ordenação */}
 						<div className="flex flex-wrap gap-4 mb-6">
 							<div className="flex-1 min-w-[150px]">
 								<label htmlFor="modalidade-filter" className="block text-sm font-medium text-gray-700 mb-1">Modalidade</label>
@@ -334,6 +392,7 @@ export default function TelaHome({
 							</div>
 						</div>
 
+						{/* Grid de Vagas */}
 						<div className="grid gap-4">
 							{vagasFiltradasESorteadas && vagasFiltradasESorteadas.length > 0 ? (
 								vagasFiltradasESorteadas.map((vaga) => (
@@ -368,13 +427,14 @@ export default function TelaHome({
 								))
 							) : (
 								<p className="text-gray-500 text-center">
-									Nenhuma vaga aberta encontrada no momento.
+									Nenhuma vaga aberta encontrada com os filtros selecionados.
 								</p>
 							)}
 						</div>
 					</div>
 				</main>
 	
+				{/* Modal de Detalhes da Vaga */}
 				{vagaSelecionada && (
 					<ModalDetalhesVaga
 						vaga={vagaSelecionada}

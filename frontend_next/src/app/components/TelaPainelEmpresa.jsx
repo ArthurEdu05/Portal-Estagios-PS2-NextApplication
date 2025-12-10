@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Componente do painel da empresa.
+ * Permite que as empresas gerenciem suas vagas de estágio, visualizem candidatos e editem, encerrem, reabram ou excluam vagas.
+ * Fornece uma interface para a criação de novas vagas e o acompanhamento das existentes.
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +23,12 @@ import {
 	RefreshCw,
 } from 'lucide-react';
 
-// Helper component for status badge
+/**
+ * Componente auxiliar para exibir um selo de status da vaga.
+ *
+ * @param {string} props.status - O status da vaga ('ABERTA' ou 'FECHADA').
+ * @returns {JSX.Element} Um elemento span formatado com o status da vaga.
+ */
 const StatusBadge = ({ status }) => {
 	const isAberta = status === 'ABERTA';
 	return (
@@ -27,6 +38,20 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
+/**
+ * Renderiza o painel principal para as empresas.
+ *
+ * @param {object} props.usuario - O objeto do usuário (empresa) logado.
+ * @param {function} props.fazerLogout - Função para realizar o logout do usuário.
+ * @param {Array<object>} props.vagas - Lista de todas as vagas cadastradas no sistema.
+ * @param {Array<object>} props.inscricoes - Lista de todas as inscrições de estudantes.
+ * @param {function} props.setTela - Função para navegar para outras telas (ex: formulário de vaga).
+ * @param {function} props.onEncerrarVaga - Função para encerrar uma vaga.
+ * @param {function} props.onReabrirVaga - Função para reabrir uma vaga.
+ * @param {function} props.onEditarVaga - Função para editar uma vaga, passando os dados da vaga.
+ * @param {function} props.onDeletarVaga - Função para deletar uma vaga.
+ * @returns {JSX.Element} O painel da empresa com suas vagas e candidatos.
+ */
 export default function TelaPainelEmpresa({
 	usuario,
 	fazerLogout,
@@ -38,18 +63,29 @@ export default function TelaPainelEmpresa({
 	onEditarVaga,
 	onDeletarVaga,
 }) {
+	// Estado para controlar qual vaga tem a lista de candidatos expandida.
 	const [vagaAbertaId, setVagaAbertaId] = useState(null);
 
+	// Filtra as vagas para mostrar apenas as criadas pela empresa logada.
 	const minhasVagas = vagas.filter(
 		(vaga) => vaga.empresa?.id === usuario.id
 	);
 
+	/**
+	 * Retorna a lista de candidatos para uma vaga específica.
+	 * @param {number} vagaId - O ID da vaga.
+	 */
 	const getCandidatos = (vagaId) => {
 		return inscricoes.filter(
 			(inscricao) => inscricao.vagaEstagio?.id === vagaId
 		);
 	};
 
+	/**
+	 * Alterna a visibilidade da lista de candidatos para uma vaga.
+	 * Expande se estiver fechada, fecha se estiver expandida.
+	 * @param {number} vagaId - O ID da vaga.
+	 */
 	const toggleVaga = (vagaId) => {
 		setVagaAbertaId(vagaAbertaId === vagaId ? null : vagaId);
 	};
@@ -86,7 +122,7 @@ export default function TelaPainelEmpresa({
 					</h2>
 					<button
 						onClick={() => {
-							onEditarVaga(null); // Garante que o form estará em modo de criação
+							onEditarVaga(null); 
 							setTela('formulario-vaga');
 						}}
 						className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -122,6 +158,7 @@ export default function TelaPainelEmpresa({
 											</div>
 										</div>
 										<div className="flex items-center gap-2 flex-shrink-0 ml-4">
+											{/* Renderização condicional de botões de ação */}
 											{isVagaFechada ? (
 												<>
 													<button

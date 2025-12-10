@@ -1,27 +1,55 @@
+/**
+ * @fileoverview Componente da tela "Minhas Candidaturas" para estudantes.
+ * Exibe uma lista das vagas de estágio às quais o estudante se candidatou.
+ * Permite filtrar as candidaturas pelo status da vaga (aberta, fechada, todas)
+ * e ordenar pela data da candidatura. O estudante pode ver detalhes da vaga
+ */
+
 import React, { useState, useMemo } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import ModalDetalhesVaga from './ModalDetalhesVaga';
 
+/**
+ * Renderiza a tela "Minhas Candidaturas" para um estudante.
+ *
+ * @param {function} props.setTela - Função para navegar de volta à tela Home ou Vagas.
+ * @param {Array<object>} props.inscricoes - Lista das inscrições do estudante. Cada inscrição contém um objeto `vagaEstagio` simplificado.
+ * @param {Array<object>} props.vagas - Lista completa de todas as vagas disponíveis, usada para obter detalhes completos das vagas inscritas.
+ * @param {function} props.onCancelarInscricao - Função para cancelar uma inscrição.
+ * @param {object} props.usuario - O objeto do usuário estudante logado.
+ * @returns {JSX.Element} A tela com a lista de candidaturas do estudante.
+ */
 const TelaMinhasCandidaturas = ({ setTela, inscricoes, vagas, onCancelarInscricao, usuario }) => {
+    // Estado para controlar a exibição do modal de detalhes da vaga.
     const [vagaSelecionada, setVagaSelecionada] = useState(null);
-    const [filtroStatus, setFiltroStatus] = useState('TODAS'); // TODAS, ABERTAS, FECHADAS
-    const [ordem, setOrdem] = useState('RECENTES'); // RECENTES, ANTIGAS
+    // Estado para o filtro de status da vaga (TODAS, ABERTAS, FECHADAS).
+    const [filtroStatus, setFiltroStatus] = useState('TODAS');
+    // Estado para a ordem de exibição das candidaturas (RECENTES, ANTIGAS).
+    const [ordem, setOrdem] = useState('RECENTES');
 
+    /**
+     * Usa useMemo para processar e filtrar as candidaturas.
+     * Isso evita recálculos desnecessários e melhora a performance.
+     * 1. Adiciona os detalhes completos da vaga a cada inscrição.
+     * 2. Filtra as candidaturas com base no `filtroStatus`.
+     * 3. Ordena as candidaturas com base na `ordem` (data de inscrição).
+     */
     const candidaturasProcessadas = useMemo(() => {
         let candidaturasComDetalhes = inscricoes.map(inscricao => {
+            // Encontra os detalhes completos da vaga correspondente.
             const vagaCorrespondente = vagas.find(vaga => vaga.id === inscricao.vagaEstagio.id);
             return {
                 ...inscricao,
                 vaga: vagaCorrespondente
             };
-        }).filter(candidatura => candidatura.vaga); 
+        }).filter(candidatura => candidatura.vaga); // Garante que apenas candidaturas com vagas válidas sejam exibidas.
 
-        // 2. Filtra pelo status da vaga (ABERTA/FECHADA)
+        // Aplica o filtro por status da vaga
         if (filtroStatus !== 'TODAS') {
             candidaturasComDetalhes = candidaturasComDetalhes.filter(c => c.vaga.status === filtroStatus);
         }
 
-        // Ordena pela data de inscrição
+        // Ordena as candidaturas
         candidaturasComDetalhes.sort((a, b) => {
             const dateA = new Date(a.dataInscricao);
             const dateB = new Date(b.dataInscricao);
@@ -36,6 +64,11 @@ const TelaMinhasCandidaturas = ({ setTela, inscricoes, vagas, onCancelarInscrica
 
     }, [inscricoes, vagas, filtroStatus, ordem]);
 
+    /**
+     * Retorna as classes CSS para o selo de status da candidatura.
+     * @param {string} status - O status da candidatura (PENDENTE, EM_ANALISE, APROVADO, REJEITADO).
+     * @returns {string} Classes CSS Tailwind para estilização do selo.
+     */
     const getStatusClass = (status) => {
         switch (status) {
             case 'PENDENTE': return 'bg-yellow-100 text-yellow-800';
@@ -46,6 +79,11 @@ const TelaMinhasCandidaturas = ({ setTela, inscricoes, vagas, onCancelarInscrica
         }
     };
 
+    /**
+     * Retorna as classes CSS para o selo de status da vaga (dentro da candidatura).
+     * @param {string} status - O status da vaga (ABERTA, FECHADA).
+     * @returns {string} Classes CSS Tailwind para estilização do selo.
+     */
     const getVagaStatusClass = (status) => {
         switch (status) {
             case 'ABERTA': return 'bg-green-100 text-green-800';

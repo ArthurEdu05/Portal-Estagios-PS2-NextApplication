@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Modal para exibir os detalhes de uma vaga de estágio.
+ * Permite que estudantes se inscrevam ou cancelem a inscrição em uma vaga.
+ * O modal exibe informações detalhadas sobre a vaga, como título, empresa, localização,
+ * modalidade, carga horária, data de encerramento, descrição e requisitos.
+ */
+
 'use client';
 import {
 	Building2,
@@ -11,6 +18,12 @@ import {
 	FileText,
 } from 'lucide-react';
 
+/**
+ * Componente que renderiza um selo de status ("Aberta" ou "Fechada").
+ * A cor do selo muda de acordo com o status da vaga.
+ * @param {string} props.status - O status da vaga ('ABERTA' ou 'FECHADA').
+ * @returns {JSX.Element} Um elemento span com o status da vaga.
+ */
 const StatusBadge = ({ status }) => {
 	const isAberta = status === 'ABERTA';
 	return (
@@ -20,19 +33,31 @@ const StatusBadge = ({ status }) => {
 	);
 };
 
+/**
+ * Componente principal que renderiza o modal com os detalhes da vaga.
+ *
+ * @param {object} props.vaga - O objeto da vaga a ser exibida.
+ * @param {function} props.fecharModal - Função para fechar o modal.
+ * @param {function} props.onInscrever - Função a ser chamada quando o usuário se inscreve na vaga.
+ * @param {Array} props.inscricoes - Um array com as inscrições do usuário.
+ * @param {function} props.onCancelarInscricao - Função a ser chamada quando o usuário cancela a inscrição.
+ * @param {object} props.usuario - O objeto do usuário logado.
+ * @returns {JSX.Element} O modal de detalhes da vaga.
+ */
 export default function ModalDetalhesVaga({
 	vaga,
 	fecharModal,
 	onInscrever,
 	inscricoes,
 	onCancelarInscricao,
-	usuario, // Adicionado para verificar o tipo de usuário
+	usuario, 
 }) {
+	// Verifica se o usuário já está inscrito na vaga.
 	const inscricao = inscricoes?.find((i) => i.vagaEstagio.id === vaga.id);
 	const estaInscrito = !!inscricao;
 	const isVagaFechada = vaga.status === 'FECHADA';
 
-	// Split requisitos by newline for list rendering
+	// Separa os requisitos por quebra de linha para renderizá-los como uma lista.
 	const requisitosList = vaga.requisitos?.split('\n').filter(req => req.trim() !== '');
 
 	return (
@@ -45,6 +70,7 @@ export default function ModalDetalhesVaga({
 					<XCircle size={28} />
 				</button>
 
+				{/* Exibe uma mensagem se o usuário estiver inscrito na vaga. */}
 				{estaInscrito && (
 					<div className="absolute top-4 left-4 flex items-center gap-2 bg-green-100 text-green-800 font-semibold px-4 py-2 rounded-lg">
 						<CheckCircle2 size={20} />
@@ -88,6 +114,13 @@ export default function ModalDetalhesVaga({
 				</div>
 
 				<div className="flex gap-4 pt-4 border-t">
+					{/*
+					 * Renderização condicional dos botões de inscrição/cancelamento.
+					 * - Apenas usuários do tipo 'ESTUDANTE' podem ver os botões.
+					 * - Se o estudante já estiver inscrito, exibe o botão "Cancelar Inscrição".
+					 * - Caso contrário, exibe o botão "Inscrever-se".
+					 * - Os botões são desabilitados se a vaga estiver fechada.
+					 */}
 					{usuario?.tipo === 'ESTUDANTE' && (
 						estaInscrito ? (
 							<button

@@ -1,9 +1,26 @@
+/**
+ * @fileoverview Formulário para criação e edição de vagas de estágio.
+ * Este componente é usado por empresas para publicar novas vagas ou atualizar
+ * vagas existentes. Ele busca as áreas de interesse da API para preencher
+ * um campo de seleção múltipla e realiza a validação dos dados antes de salvar.
+ */
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 
+/**
+ * Renderiza o formulário para criar ou editar uma vaga.
+ *
+ * @param {function} props.setTela - Função para navegar de volta ao painel da empresa.
+ * @param {function} props.onSalvarVaga - Função assíncrona para salvar (criar ou atualizar) a vaga.
+ * @param {object} props.api - Objeto com métodos para interagir com a API (ex: `listarAreas`).
+ * @param {object} [props.vagaInicial] - Os dados da vaga a ser editada. Se não for fornecido, o formulário abre em modo de criação.
+ * @returns {JSX.Element} O formulário de vaga.
+ */
 export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaInicial }) {
+	// Estado para os dados do formulário.
 	const [formData, setFormData] = useState({
 		titulo: '',
 		descricao: '',
@@ -15,34 +32,46 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 		cargaHoraria: '',
 		requisitos: '',
 	});
+	// Estado para a lista de áreas de interesse.
 	const [areas, setAreas] = useState([]);
+	// Estado para mensagens de erro.
 	const [erro, setErro] = useState('');
+	// Estado para feedback de carregamento.
 	const [carregando, setCarregando] = useState(false);
 
+	// Determina se o formulário está em modo de edição.
 	const isEditing = !!vagaInicial;
 
+	// Efeito para buscar áreas de interesse e preencher o formulário em modo de edição.
 	useEffect(() => {
+		// Busca a lista de áreas de interesse da API.
 		api.listarAreas()
 			.then(setAreas)
 			.catch(() =>
 				setErro('Não foi possível carregar as áreas de interesse.')
 			);
 
+		// Se `vagaInicial` for fornecido, preenche o formulário com seus dados.
 		if (isEditing) {
 			setFormData({
 				titulo: vagaInicial.titulo || '',
 				descricao: vagaInicial.descricao || '',
+				// Formata as datas para o formato YYYY-MM-DD.
 				dataInicio: vagaInicial.dataInicio ? new Date(vagaInicial.dataInicio).toISOString().split('T')[0] : '',
 				dataFim: vagaInicial.dataFim ? new Date(vagaInicial.dataFim).toISOString().split('T')[0] : '',
 				listAreaInteresse: vagaInicial.listAreaInteresse || [],
 				localizacao: vagaInicial.localizacao || '',
 				modalidade: vagaInicial.modalidade || 'PRESENCIAL',
+				// Remove o sufixo " horas" para edição.
 				cargaHoraria: vagaInicial.cargaHoraria ? String(vagaInicial.cargaHoraria).replace(/[^0-9]/g, '') : '',
 				requisitos: vagaInicial.requisitos || '',
 			});
 		}
 	}, [api, vagaInicial, isEditing]);
 
+	/**
+	 * Manipula mudanças nos campos de input e textarea.
+	 */
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -52,8 +81,12 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 		setErro('');
 	};
 
+	/**
+	 * Manipula a seleção de múltiplas áreas de interesse.
+	 */
 	const handleAreaChange = (e) => {
 		const options = [...e.target.selectedOptions];
+		// Mapeia os IDs selecionados para os objetos de área completos.
 		const values = options.map((option) =>
 			areas.find((area) => area.id === parseInt(option.value))
 		);
@@ -63,6 +96,10 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 		}));
 	};
 
+	/**
+	 * Manipula a submissão do formulário.
+	 * Valida os dados e chama `onSalvarVaga`.
+	 */
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setErro('');
@@ -83,13 +120,13 @@ export default function TelaFormularioVaga({ setTela, onSalvarVaga, api, vagaIni
 
 		setCarregando(true);
 		try {
-			// Append " horas" to cargaHoraria before saving
+			// Adiciona o sufixo " horas" à carga horária antes de salvar.
 			const dataToSend = {
 				...formData,
 				cargaHoraria: `${formData.cargaHoraria} horas`,
 			};
 
-			// Pass the correct ID when editing
+			// Garante que o ID da vaga seja incluído ao editar.
 			const dataToSave = isEditing ? { ...dataToSend, id: vagaInicial.id } : dataToSend;
 			await onSalvarVaga(dataToSave);
 		} catch (error) {

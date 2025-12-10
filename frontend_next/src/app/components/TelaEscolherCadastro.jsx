@@ -1,6 +1,19 @@
+/**
+ * @fileoverview Tela de seleção de tipo de cadastro.
+ * Este componente apresenta ao usuário as opções de se cadastrar como
+ * Estudante, Empresa ou Administrador, redirecionando para o formulário
+ * correspondente a cada escolha.
+ */
+
 'use client';
 import { User, Building2, UserCog } from 'lucide-react'; 
 
+/**
+ * Renderiza a tela de escolha de tipo de cadastro.
+ *
+ * @param {function} props.setTela - Função para alterar a tela atual, navegando para o formulário de cadastro escolhido ou de volta para a home.
+ * @returns {JSX.Element} A tela com as opções de cadastro.
+ */
 export default function TelaEscolherCadastro({ setTela }) {
 	return (
 		<div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
@@ -9,6 +22,7 @@ export default function TelaEscolherCadastro({ setTela }) {
 					Escolha o Tipo de Cadastro
 				</h2>
 				<div className="grid md:grid-cols-3 gap-6"> 
+					{/* Card de opção para cadastro de Estudante */}
 					<button
 						onClick={() => setTela('cadastro-estudante')}
 						className="p-8 border-2 border-blue-200 rounded-xl hover:border-blue-600 hover:shadow-lg transition"
@@ -22,6 +36,7 @@ export default function TelaEscolherCadastro({ setTela }) {
 							Cadastre-se para encontrar estágios
 						</p>
 					</button>
+					{/* Card de opção para cadastro de Empresa */}
 					<button
 						onClick={() => setTela('cadastro-empresa')}
 						className="p-8 border-2 border-green-200 rounded-xl hover:border-green-600 hover:shadow-lg transition"
@@ -35,6 +50,7 @@ export default function TelaEscolherCadastro({ setTela }) {
 							Cadastre-se para divulgar vagas
 						</p>
 					</button>
+					{/* Card de opção para cadastro de Administrador */}
 					<button
 						onClick={() => setTela('cadastro-admin')} 
 						className="p-8 border-2 border-purple-200 rounded-xl hover:border-purple-600 hover:shadow-lg transition"
@@ -42,7 +58,7 @@ export default function TelaEscolherCadastro({ setTela }) {
 						<UserCog
 							className="text-purple-600 mx-auto mb-4"
 							size={48}
-						/> {/* Ícone para admin */}
+						/>
 						<h3 className="text-xl font-bold mb-2">
 							Administrador
 						</h3>

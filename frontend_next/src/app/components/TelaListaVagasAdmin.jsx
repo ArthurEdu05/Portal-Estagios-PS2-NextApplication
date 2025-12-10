@@ -1,8 +1,19 @@
+/**
+ * @fileoverview Componente da tela de listagem e gerenciamento de vagas para o administrador.
+ * Permite ao administrador visualizar todas as vagas cadastradas, com opções de filtragem
+ * por status (aberta, fechada, todas) para facilitar a gestão.
+ */
+
 'use client';
-import React, { useState, useEffect } from 'react'; // Adicione useEffect
+import React from 'react';
 import { ArrowLeft, Briefcase, MapPin, Clock, Laptop, Info, FileText } from 'lucide-react';
 
-// Helper component for status badge
+/**
+ * Componente auxiliar para exibir um selo de status da vaga.
+ *
+ * @param {string} props.status - O status da vaga ('ABERTA' ou 'FECHADA').
+ * @returns {JSX.Element} Um elemento span formatado com o status da vaga.
+ */
 const StatusBadge = ({ status }) => {
     const isAberta = status === 'ABERTA';
     return (
@@ -12,10 +23,17 @@ const StatusBadge = ({ status }) => {
     );
 };
 
+/**
+ * Renderiza a tela de listagem de vagas para o administrador.
+ *
+ * @param {function} props.setTela - Função para navegar de volta ao dashboard do administrador.
+ * @param {Array<object>} props.vagas - A lista de objetos de vagas a serem exibidas.
+ * @param {string} props.filtroInicial - O status de filtro inicial ('TODAS', 'ABERTA', 'FECHADA').
+ * @param {function} props.onFiltroChange - Função para alterar o filtro de status da vaga.
+ * @returns {JSX.Element} A tela de listagem de vagas para administração.
+ */
 export default function TelaListaVagasAdmin({ setTela, vagas, filtroInicial, onFiltroChange }) {
-    // Usamos filtroInicial como o estado atual e onFiltroChange para atualizá-lo
-    // Não é necessário um estado local 'filtroStatus' aqui, pois é um componente controlado
-
+    // As vagas exibidas são filtradas com base no 'filtroInicial' fornecido.
     const vagasExibidas = vagas.filter(vaga => {
         if (filtroInicial === 'TODAS') {
             return true;
@@ -43,6 +61,7 @@ export default function TelaListaVagasAdmin({ setTela, vagas, filtroInicial, onF
             <main className="max-w-7xl mx-auto p-6">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-gray-800">Lista de Vagas</h2>
+                    {/* Botões de filtro por status */}
                     <div className="flex gap-2">
                         <button
                             onClick={() => onFiltroChange('TODAS')}

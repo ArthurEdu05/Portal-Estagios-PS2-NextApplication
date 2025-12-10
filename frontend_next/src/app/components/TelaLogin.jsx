@@ -1,31 +1,55 @@
+/**
+ * @fileoverview Componente do formulário de login.
+ * Permite que usuários (administradores, empresas, estudantes) se autentiquem
+ * no sistema fornecendo seu email e senha. Inclui validação básica de campos,
+ * feedback de erro e navegação para outras telas como home e cadastro.
+ */
+
 'use client';
 import React, { useState } from 'react';
 import { Briefcase } from 'lucide-react';
 
+/**
+ * Renderiza a tela de login.
+ *
+ * @param {function} props.setTela - Função para navegar para outras telas (ex: home, escolher-cadastro).
+ * @param {function} props.fazerLogin - Função assíncrona para processar as credenciais de login.
+ */
 export default function TelaLogin({ setTela, fazerLogin }) {
+	// Estados para armazenar os valores dos campos de email e senha.
 	const [email, setEmail] = useState('');
 	const [senha, setSenha] = useState('');
+	// Estado para controlar o feedback de carregamento durante o processo de login.
 	const [carregando, setCarregando] = useState(false);
+	// Estado para armazenar e exibir mensagens de erro.
 	const [erro, setErro] = useState('');
 
+	/**
+	 * Manipula a tentativa de login.
+	 * Realiza a validação dos campos e chama a função `fazerLogin` para autenticação.
+	 */
 	const handleLogin = async () => {
+		// Validação básica: verifica se email e senha estão preenchidos.
 		if (!email || !senha) {
 			setErro('Preencha email e senha.');
 			return;
 		}
 
 		setCarregando(true);
-		setErro('');
+		setErro(''); // Limpa erros anteriores.
 
 		try {
 			
+			// Chama a função de login passada via prop.
 			await fazerLogin({
 				email,
 				senha,
 			});
 		} catch (error) {
+			// Exibe mensagem de erro se a autenticação falhar.
 			setErro('Erro ao fazer login. Verifique suas credenciais.');
 		} finally {
+			// Finaliza o estado de carregamento, independentemente do sucesso ou falha.
 			setCarregando(false);
 		}
 	};
@@ -42,7 +66,7 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 				</div>
 
 				<div className="space-y-4">
-					{/* Email */}
+					{/* Campo de Email */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-2">
 							E-mail
@@ -59,7 +83,7 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 						/>
 					</div>
 
-					{/* Senha */}
+					{/* Campo de Senha */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-2">
 							Senha
@@ -72,6 +96,7 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 								setErro('');
 							}}
 							onKeyPress={(e) => {
+								// Permite o login ao pressionar 'Enter' no campo de senha.
 								if (e.key === 'Enter') handleLogin();
 							}}
 							className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -79,14 +104,14 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 						/>
 					</div>
 
-					{/* Mensagem de erro */}
+					{/* Mensagem de erro (renderizada condicionalmente) */}
 					{erro && (
 						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
 							{erro}
 						</div>
 					)}
 
-					{/* Entrar */}
+					{/* Botão de Entrar */}
 					<button
 						onClick={handleLogin}
 						disabled={carregando}
@@ -95,7 +120,7 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 						{carregando ? 'Entrando...' : 'Entrar'}
 					</button>
 
-					{/* Voltar */}
+					{/* Botão Voltar para a Home */}
 					<button
 						onClick={() => setTela('home')}
 						className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition font-medium"
@@ -103,7 +128,7 @@ export default function TelaLogin({ setTela, fazerLogin }) {
 						Voltar
 					</button>
 
-					{/* Criar conta */}
+					{/* Link para a tela de cadastro */}
 					<div className="text-center pt-2 text-sm text-gray-600">
 						<span>Não possuo conta! </span>
 						<button

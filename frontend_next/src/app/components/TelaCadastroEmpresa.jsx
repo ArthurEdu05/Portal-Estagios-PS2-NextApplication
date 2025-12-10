@@ -1,9 +1,24 @@
+/**
+ * @fileoverview Formulário de cadastro para novas empresas.
+ * Este componente coleta dados da empresa, incluindo nome, CNPJ, email e senha.
+ * Inclui formatação automática para o campo CNPJ, validação de dados e
+ * feedback de força da senha. Após o cadastro bem-sucedido, o usuário
+ * é redirecionado para a tela de login.
+ */
+
 'use client';
 
 import React, { useState } from 'react';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
 
+/**
+ * Renderiza o formulário de cadastro para uma nova empresa.
+ *
+ * @param {function} props.setTela - Função para navegar para outras telas (ex: login).
+ * @returns {JSX.Element} O formulário de cadastro de empresa.
+ */
 export default function TelaCadastroEmpresa({ setTela }) {
+	// Estado para armazenar os dados do formulário.
 	const [formData, setFormData] = useState({
 		nome: '',
 		cnpj: '',
@@ -11,9 +26,15 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		senha: '',
 		confirmarSenha: '', 
 	});
+	// Estado para mensagens de erro.
 	const [erro, setErro] = useState('');
+	// Estado para feedback de carregamento.
 	const [carregando, setCarregando] = useState(false);
 
+	/**
+	 * Atualiza o estado do formulário conforme o usuário digita.
+	 * @param {React.ChangeEvent<HTMLInputElement>} e - O evento de mudança do input.
+	 */
 	const handleChange = (e) => {
 		const { name, value } = e.target;
 		setFormData((prev) => ({
@@ -23,7 +44,11 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		setErro('');
 	};
 
-	// FORMATAR CNPJ
+	/**
+	 * Formata um valor de CNPJ em tempo real, adicionando pontos, barras e traços.
+	 * @param {string} value - O valor do CNPJ a ser formatado.
+	 * @returns {string} O CNPJ formatado.
+	 */
 	const formatarCNPJ = (value) => {
 		return value
 			.replace(/\D/g, '')
@@ -34,6 +59,10 @@ export default function TelaCadastroEmpresa({ setTela }) {
 			.substring(0, 18);
 	};
 
+	/**
+	 * Manipula a mudança no campo CNPJ, aplicando a formatação.
+	 * @param {React.ChangeEvent<HTMLInputElement>} e - O evento de mudança do input.
+	 */
 	const handleCNPJChange = (e) => {
 		const valorFormatado = formatarCNPJ(e.target.value);
 		setFormData((prev) => ({
@@ -43,7 +72,10 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		setErro('');
 	};
 
-	// VALIDAÇÕES
+	/**
+	 * Valida os dados do formulário antes da submissão.
+	 * @returns {boolean} `true` se o formulário for válido, `false` caso contrário.
+	 */
 	const validarFormulario = () => {
 		if (!formData.nome.trim()) {
 			setErro('Nome é obrigatório');
@@ -61,14 +93,19 @@ export default function TelaCadastroEmpresa({ setTela }) {
 			setErro('A senha deve ter pelo menos 8 caracteres');
 			return false;
 		}
-		if (formData.senha !== formData.confirmarSenha) { // Validação de senhas
+		if (formData.senha !== formData.confirmarSenha) { 
 			setErro('As senhas não coincidem');
 			return false;
 		}
 		return true;
 	};
 
-	// API
+	/**
+	 * Envia os dados da nova empresa para a API.
+	 * @param {object} dados - Os dados da empresa a serem cadastrados.
+	 * @returns {Promise<object>} A resposta da API.
+	 * @throws {Error} Se a resposta da API não for 'ok'.
+	 */
 	const cadastrarEmpresa = async (dados) => {
 		const response = await fetch('http://localhost:8080/empresa', {
 			method: 'POST',
@@ -85,6 +122,11 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		return response.json();
 	};
 
+	/**
+	 * Manipula a submissão do formulário.
+	 * Realiza a validação e se bem-sucedido, chama a função `cadastrarEmpresa`.
+	 * @param {React.FormEvent} e - O evento de submissão do formulário.
+	 */
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setErro('');
@@ -94,6 +136,7 @@ export default function TelaCadastroEmpresa({ setTela }) {
 		setCarregando(true);
 
 		try {
+			// Prepara os dados para envio, removendo a formatação do CNPJ.
 			const dados = {
 				nome: formData.nome,
 				cnpj: formData.cnpj.replace(/\D/g, ''),

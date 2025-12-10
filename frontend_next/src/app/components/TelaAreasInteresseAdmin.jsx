@@ -1,13 +1,36 @@
+/**
+ * @fileoverview Tela de administração para gerenciar as Áreas de Interesse.
+ * Permite que o administrador crie, edite, visualize e delete áreas de interesse
+ * que serão utilizadas para classificar vagas e perfis de estudantes.
+ * A tela é dividida em um formulário para entrada de dados e uma lista de áreas já cadastradas.
+ */
+
 'use client';
 import React, { useState, useEffect } from 'react';
 import { BookMarked, Trash2, Edit, ArrowLeft } from 'lucide-react';
 
+/**
+ * Componente para gerenciar as Áreas de Interesse (CRUD).
+ *
+ * @param {function} props.setTela - Função para navegar de volta ao dashboard principal.
+ * @param {Array<object>} props.areas - A lista de áreas de interesse existentes.
+ * @param {function} props.onCadastrar - Função para cadastrar uma nova área.
+ * @param {function} props.onAtualizar - Função para atualizar uma área existente.
+ * @param {function} props.onDeletar - Função para deletar uma área.
+ * @returns {JSX.Element} A interface de gerenciamento de áreas de interesse.
+ */
 export default function TelaAreasInteresseAdmin({ setTela, areas, onCadastrar, onAtualizar, onDeletar }) {
     const [id, setId] = useState(null);
     const [titulo, setTitulo] = useState('');
     const [descricao, setDescricao] = useState('');
     const [isEditing, setIsEditing] = useState(false);
 
+    /**
+     * Manipula o envio do formulário.
+     * Valida os campos e chama a função de cadastrar ou atualizar,
+     * dependendo se o formulário está em modo de edição ou não.
+     * @param {React.FormEvent} e - O evento do formulário.
+     */
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!titulo || !descricao) {
@@ -23,6 +46,12 @@ export default function TelaAreasInteresseAdmin({ setTela, areas, onCadastrar, o
         resetForm();
     };
 
+    /**
+     * Prepara o formulário para edição.
+     * Define o estado de edição como `true` e preenche os campos do formulário
+     * com os dados da área selecionada.
+     * @param {object} area - O objeto da área a ser editada.
+     */
     const handleEdit = (area) => {
         setIsEditing(true);
         setId(area.id);
@@ -30,6 +59,10 @@ export default function TelaAreasInteresseAdmin({ setTela, areas, onCadastrar, o
         setDescricao(area.descricao);
     };
 
+    /**
+     * Reseta o estado do formulário para o seu estado inicial.
+     * Limpa os campos e desativa o modo de edição.
+     */
     const resetForm = () => {
         setIsEditing(false);
         setId(null);
@@ -59,7 +92,7 @@ export default function TelaAreasInteresseAdmin({ setTela, areas, onCadastrar, o
             <main className="max-w-7xl mx-auto p-6">
                 {/* Formulário e Lista */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Formulário */}
+                    {/* Formulário para Adicionar/Editar Área */}
                     <div className="md:col-span-1">
                         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                             <h2 className="text-xl font-semibold mb-4 text-gray-700">{isEditing ? 'Editar Área' : 'Nova Área'}</h2>
@@ -98,7 +131,7 @@ export default function TelaAreasInteresseAdmin({ setTela, areas, onCadastrar, o
                         </div>
                     </div>
 
-                    {/* Lista */}
+                    {/* Lista de Áreas Cadastradas */}
                     <div className="md:col-span-2">
                         <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
                             <h2 className="text-xl font-semibold mb-4 text-gray-700">Áreas Cadastradas</h2>

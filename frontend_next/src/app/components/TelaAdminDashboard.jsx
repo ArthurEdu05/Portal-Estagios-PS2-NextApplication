@@ -1,9 +1,24 @@
+/**
+ * @fileoverview Tela principal do painel de administração.
+ * Exibe estatísticas gerais do portal, um gráfico de vagas por área e fornece navegação
+ * para outras seções de gerenciamento do sistema, como gerenciamento de vagas,
+ * estudantes, empresas e áreas de interesse.
+ */
+
 'use client';
 
 import React, { useState } from 'react';
 import { LogOut, LayoutDashboard, Briefcase, Users, Building, Settings, BarChart2 } from 'lucide-react';
 import GraficoVagasPorArea from './GraficoVagasPorArea';
 
+/**
+ * Componente para exibir um card de estatística clicável.
+ *
+ * @param {string} props.title - O título do card (ex: "Vagas Abertas").
+ * @param {number | string} props.value - O valor a ser exibido.
+ * @param {JSX.Element} props.icon - O ícone a ser exibido no card.
+ * @param {function} props.onClick - A função a ser chamada quando o card é clicado.
+ */
 const StatCard = ({ title, value, icon, onClick }) => (
 	<button onClick={onClick} className="bg-gray-100 p-6 rounded-lg flex items-center gap-4 border border-gray-200 hover:bg-gray-200 hover:shadow-md transition w-full text-left">
 		{icon}
@@ -14,14 +29,30 @@ const StatCard = ({ title, value, icon, onClick }) => (
 	</button>
 );
 
-
+/**
+ * Componente principal do painel de administração.
+ *
+ * @param {function} props.setTela - Função para mudar a tela/componente renderizado no painel principal.
+ * @param {object} props.usuario - O objeto do administrador logado.
+ * @param {function} props.fazerLogout - Função para realizar o logout do administrador.
+ * @param {Array<object>} props.vagas - Lista de todas as vagas cadastradas.
+ * @param {Array<object>} props.estudantes - Lista de todos os estudantes cadastrados.
+ * @param {Array<object>} props.empresas - Lista de todas as empresas cadastradas.
+ * @param {function} props.onVerListaVagas - Função para navegar para a lista de vagas com um filtro específico.
+ */
 export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vagas, estudantes, empresas, onVerListaVagas }) {
 	const [activeTab, setActiveTab] = useState('dashboard');
 
+	// Calcula as contagens de vagas para os cards de estatística.
 	const vagasAbertasCount = vagas.filter(vaga => vaga.status === 'ABERTA').length;
 	const vagasEncerradasCount = vagas.filter(vaga => vaga.status === 'FECHADA').length;
 	const totalVagasCount = vagas.length;
 
+	/**
+	 * Processa os dados das vagas para agregar o número de vagas por área de interesse.
+	 * O resultado é usado para alimentar o componente `GraficoVagasPorArea`.
+	 * @returns {Array<object>} Um array de objetos no formato { name: string, vagas: number }.
+	 */
 	const vagasPorArea = vagas.reduce((acc, vaga) => {
 		(vaga.listAreaInteresse || []).forEach(area => {
 			acc[area.titulo] = (acc[area.titulo] || 0) + 1;
@@ -34,6 +65,14 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 		vagas: vagasPorArea[key],
 	}));
 
+	/**
+	 * Componente de botão para as abas de navegação (Dashboard, Gerenciamento).
+	 *
+	 * @param {string} props.tabName - O identificador da aba.
+	 * @param {string} props.label - O texto do botão.
+	 * @param {JSX.Element} props.icon - O ícone do botão.
+	 * @returns {JSX.Element} Um botão que controla a aba ativa.
+	 */
 	const TabButton = ({ tabName, label, icon }) => {
 		const isActive = activeTab === tabName;
 		return (
@@ -74,6 +113,7 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 
 			<main className="max-w-7xl mx-auto p-6">
 			
+				{/* Navegação por Abas */}
 				<div className="border-b border-gray-200 mb-6">
 					<nav className="flex space-x-2" aria-label="Tabs">
 						<TabButton tabName="dashboard" label="Dashboard" icon={<BarChart2 size={18} />} />
@@ -82,6 +122,7 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 				</div>
 
 			
+				{/* Conteúdo da Aba Dashboard */}
 				{activeTab === 'dashboard' && (
 					<div className="space-y-6">
 						{/* Stats */}
@@ -101,6 +142,7 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 					</div>
 				)}
 
+				{/* Conteúdo da Aba Gerenciamento */}
 				{activeTab === 'gerenciamento' && (
 					<div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
 						<h3 className="text-xl font-bold text-gray-800 mb-4">
@@ -120,4 +162,3 @@ export default function TelaAdminDashboard({ setTela, usuario, fazerLogout, vaga
 		</div>
 	);
 }
-
