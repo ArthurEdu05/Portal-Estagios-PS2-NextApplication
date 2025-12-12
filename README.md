@@ -1,6 +1,6 @@
 # Portal de Estágios - Frontend
 
-Este é o repositório do **frontend** do Portal de Estágios, uma Single Page Application (SPA) desenvolvida em **Next.js**. A aplicação consome a API RESTful do [backend em Spring Boot](https://github.com/ArthurEdu05/Portal-Estagios-Ps2) para fornecer uma plataforma completa e interativa para estudantes, empresas e administradores.
+Este é o repositório do **frontend** do Portal de Estágios, uma Single Page Application (SPA) desenvolvida em **Next.js**. A aplicação consome a API RESTful do [backend em JAVA Spring Boot](https://github.com/ArthurEdu05/Portal-Estagios-Ps2) para fornecer uma plataforma completa e interativa para estudantes, empresas e administradores.
 
 ## Visão Geral do Projeto
 
@@ -37,14 +37,14 @@ A interface do usuário foi construída para ser intuitiva e adaptada para cada 
 
 ## Tecnologias Utilizadas
 
-- **Next.js:** Framework React para uma experiência de usuário rápida e otimizada com renderização no lado do servidor (SSR).
+- **Next.js:** Framework React para uma experiência de usuário rápida e otimizada.
 - **React:** Biblioteca para a construção de componentes de UI reutilizáveis e reativos.
 - **Tailwind CSS:** Framework de design para a criação de interfaces modernas e responsivas.
 - **Recharts:** Biblioteca para a criação de gráficos interativos, utilizada no dashboard do administrador.
 
 ## Executando o Projeto Localmente
 
-Para executar o ecossistema completo, tanto o frontend quanto o backend precisam estar em execução simultaneamente.
+Para executar o ecossistema completo, tanto o frontend quanto o backend precisam estar em execução simultaneamente. (Preferência de rodar o Backend primeiro)
 
 ### 1. Backend (API REST em Spring)
 
